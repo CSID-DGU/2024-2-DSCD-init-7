@@ -144,7 +144,7 @@ def augment_evaluation(extracted_text, objective):
                         다양한 성과 평가, 기술 기여도, 문제 해결 능력, 협업 및 리더십 평가 등을 창의적으로 작성할 수 있습니다."""},
             {"role": "user", "content": """다음 텍스트를 바탕으로 '{}'에 관련된 완전히 다른 평가 내용을 여러 가지 버전으로 다양하게 작성해줘. 
                     원본 텍스트에 포함된 프로젝트와 기술적 기여 등을 다른 방식으로 평가하고, 그에 따라 새로운 성과 평가와 종합 평가를 생성해줘. 
-                    무조건 답은 한국어로 작성해줘.
+                    무조건 답은 한국어로 작성해줘. 사람 이름은 번호로 해줘. 등급도 A만 있는 게 아니라 다양하게 못한 건 못했다고 말해주는 게 좋아.
                     
                     텍스트: '{}'""".format(objective, extracted_text)}
         ]
@@ -158,7 +158,7 @@ file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', '인사�
 # 파일에서 텍스트 추출
 extracted_text = extract_text_from_local_file(file_path)
 
-objective = 'We built a system that integrated various alarm messages such as weather deteriorated, order, orders, new enterprises, and promotions.'
+objective = 'Boost the user base through targeted marketing features'
 
 
 # 추출한 텍스트를 바탕으로 평가 내용 생성
