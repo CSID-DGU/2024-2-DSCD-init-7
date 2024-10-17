@@ -6,43 +6,6 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
-# SBERT 모델 로드
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-
-def calculate_similarity(n_okr, objective):
-
-    # 입력 문장들에 대해 임베딩 생성
-    n_okr_embedding = model.encode(n_okr, convert_to_tensor=True)
-    obj_embedding = model.encode(objective, convert_to_tensor=True)
-    
-    # 코사인 유사도 계산
-    similarity = torch.nn.functional.cosine_similarity(n_okr_embedding, obj_embedding, dim=-1).item()
-    
-    return similarity
-
-
-import pandas as pd
-from sentence_transformers import SentenceTransformer
-import torch
-import os
-
-# SBERT 모델을 한 번만 로드
-model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-
-def calculate_similarity(n_okr_embedding, obj_embedding):
-    # 코사인 유사도 계산
-    similarity = torch.nn.functional.cosine_similarity(n_okr_embedding, obj_embedding, dim=-1).item()
-    return similarity
-
-
-import pandas as pd
-from sentence_transformers import SentenceTransformer
-import torch
-import os
-
-import torch
-from sentence_transformers import SentenceTransformer
-
 # SBERT 모델을 한 번만 로드
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
