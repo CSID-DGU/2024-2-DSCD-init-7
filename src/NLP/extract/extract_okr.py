@@ -156,9 +156,9 @@ def extract_okr(doc_path, threshold=0.5, weight=1.2):
     return final_okr_list
 
 
-# 현재 SBert.py 파일 위치 기준으로 상대 경로 설정
+'''# 현재 SBert.py 파일 위치 기준으로 상대 경로 설정
 docx_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', '인사평가서_okr.docx')
 
 final_okr_list = extract_okr(docx_file_path)
 
-print(final_okr_list)
+print(final_okr_list)'''
