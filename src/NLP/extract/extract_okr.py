@@ -1,11 +1,11 @@
+import re
 from sentence_transformers import SentenceTransformer, util
 
 # SBERT 모델 로드
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
-# OKR에 대한 목표 및 성과 항목 정의
+# OKR에 대한 성과 항목 정의 (Objective는 제거)
 okr_labels = {
-    "Objective": "프로젝트의 목표",
     "Key Result 1": "정확한 수치와 숫자가 들어있는 성과",
     "Key Result 2": "정확한 수치와 숫자가 들어있는 성과",
     "Key Result 3": "정확한 수치와 숫자가 들어있는 성과"
@@ -32,10 +32,13 @@ for sentence in sentences:
 
 print("쉼표로 나눈 세그먼트들:", split_sentences)
 
-# OKR 추출 함수
-def extract_okr(sentences, okr_labels, model, threshold=0.5):
+# 숫자 가중치를 적용하여 유사도를 계산하는 함수 (Objective는 없음)
+def extract_okr_with_conditional_weights(sentences, okr_labels, model, threshold=0.5, weight=1.2):
     okr_results = {}  # 최종 결과를 저장하는 딕셔너리
     used_sentences = set()  # 이미 선택된 문장을 저장하는 집합
+
+    # 숫자 패턴을 찾기 위한 정규 표현식
+    number_pattern = re.compile(r'\d+')
 
     for label, description in okr_labels.items():
         # 각 항목에 대해 임베딩 생성
@@ -52,6 +55,10 @@ def extract_okr(sentences, okr_labels, model, threshold=0.5):
             # 문장 임베딩 및 유사도 계산
             sentence_embedding = model.encode(sentence, convert_to_tensor=True)
             score = util.pytorch_cos_sim(label_embedding, sentence_embedding).item()
+
+            if number_pattern.search(sentence):
+                score *= weight  # 숫자가 포함된 문장에 가중치 적용
+
             print(f"유사도 점수 for '{label}' and '{sentence}': {score}")
 
             # 일정 유사도 threshold 이상의 문장만 선택
@@ -66,10 +73,8 @@ def extract_okr(sentences, okr_labels, model, threshold=0.5):
 
     return okr_results
 
-# OKR 추출 실행
-okr_extracted = extract_okr(split_sentences, okr_labels, model, threshold=0.5)
-
-print(okr_extracted)
+# OKR 추출 실행 (Objective는 없고, 숫자 가중치 적용)
+okr_extracted = extract_okr_with_conditional_weights(split_sentences, okr_labels, model, threshold=0.5, weight=1.5)
 
 # 결과 출력
 for label, sentence in okr_extracted.items():
