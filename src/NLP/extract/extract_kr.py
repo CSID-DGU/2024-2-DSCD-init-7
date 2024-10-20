@@ -74,8 +74,10 @@ def extract_okr_with_conditional_weights(sentences, okr_labels, model, threshold
     return okr_results
 
 # OKR 추출 실행 (Objective는 없고, 숫자 가중치 적용)
-okr_extracted = extract_okr_with_conditional_weights(split_sentences, okr_labels, model, threshold=0.5, weight=1.5)
+kr_extracted = extract_okr_with_conditional_weights(split_sentences, okr_labels, model, threshold=0.5, weight=1.5)
+
+print(kr_extracted)
 
 # 결과 출력
-for label, sentence in okr_extracted.items():
+for label, sentence in kr_extracted.items():
     print(f"{label}: {sentence}")
