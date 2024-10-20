@@ -1,5 +1,7 @@
 from transformers import PegasusForConditionalGeneration, PegasusTokenizer, MarianMTModel, MarianTokenizer
 from docx import Document
+import os
+
 
 # 요약 모델 및 토크나이저 불러오기 (PEGASUS 2B + SLiC 대신 Hugging Face의 공개된 PEGASUS 사용)
 model_name = 'google/pegasus-xsum'  # PEGASUS 모델 로드 (XSUM 데이터셋 기반으로 훈련됨)
@@ -63,8 +65,9 @@ def extract_project_performance(doc_path):
     
     return project_performances
 
-# .docx 파일 경로 설정
-docx_file_path = r"C:\Users\irony\Documents\카카오톡 받은 파일\인사평가서.docx"
+
+# 현재 SBert.py 파일 위치 기준으로 상대 경로 설정
+docx_file_path = os.path.join(os.path.dirname(__file__), '..', '..', 'data', '인사평가서.docx')
 
 # 프로젝트 성과 추출
 project_performances = extract_project_performance(docx_file_path)
