@@ -6,6 +6,11 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
 
+import mysql.connector
+import pandas as pd
+
+
+
 # SBERT 모델을 한 번만 로드
 model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
 
@@ -22,9 +27,27 @@ def get_similarities(n_okr, objectives):
     return similarities
 
 def calculate_weighted_scores(n_okr):
-    csv_path = os.path.join(os.path.dirname(__file__), '..', 'data', 'member_okr.csv')
+    conn= mysql.connector.connect(
+        host='127.0.0.1',
+        user='root',
+        password='hj010701',
+        database='data'
+    )
 
-    df = pd.read_csv(csv_path)
+    cursor = conn.cursor()
+    sql_query = '''
+    SELECT *
+    FROM member_based_okr_assignments
+    JOIN okr_peer_30 
+    ON okr_peer_30.OKR_NUM IN (member_based_okr_assignments.project1, member_based_okr_assignments.project2, member_based_okr_assignments.project3);
+    '''
+    cursor.execute(sql_query)
+    result = cursor.fetchall()
+    column_names = [i[0] for i in cursor.description]
+    member_okr = pd.DataFrame(result, columns=column_names)
+
+    
+    df = member_okr
 
     # 각 멤버의 유사도 계산 결과를 저장할 리스트
     weighted_sums = []
