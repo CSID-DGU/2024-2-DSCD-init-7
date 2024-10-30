@@ -1,7 +1,9 @@
 import sys
 import os
 import src.backend.dataload as dl
-
+import src.backend.combinations_3d as combination
+import src.backend.all_data_f as all_data_f
+import src.backend.data_saver as data_saver
 
 def main():
     # MySQL 서버 정보 설정
