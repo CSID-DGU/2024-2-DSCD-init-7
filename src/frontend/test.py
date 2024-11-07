@@ -25,6 +25,8 @@ st.markdown(
         box-shadow: 2px 2px 12px rgba(0, 0, 0, 0.1);
         background-color: white;
         margin-bottom: 20px;
+        height: 350px; /* 박스 높이 넉넉하게 고정 */
+        width: 100%;
     }
     .title-box {
         font-size: 20px;
@@ -132,9 +134,9 @@ else:
         performance_image_base64 = get_base64_image("./image/predictive_performance.png")
         st.markdown(
             f"""
-            <div class="box">
+            <div class="box" style="text-align: center;">
                 <h4>Predictive Performance</h4>
-                <img src="data:image/png;base64,{performance_image_base64}" width="400">
+                <img src="data:image/png;base64,{performance_image_base64}" width="250">
             </div>
             """,
             unsafe_allow_html=True
@@ -143,47 +145,48 @@ else:
         importance_image_base64 = get_base64_image("./image/feature_importance.png")
         st.markdown(
             f"""
-            <div class="box">
+            <div class="box" style="text-align: center;">
                 <h4>Feature Importance</h4>
-                <img src="data:image/png;base64,{importance_image_base64}" width="800">
+                <img src="data:image/png;base64,{importance_image_base64}" width="400">
             </div>
             """,
             unsafe_allow_html=True
         )
 
-    # 하단 그래프 섹션
+    # 하단 그래프 섹션 (Field Results를 마지막으로 단일 박스 형태로 이동)
     st.markdown('<div class="section-title">Additional Insights</div>', unsafe_allow_html=True)
-    lower_col1, lower_col2, lower_col3 = st.columns([1, 1, 1])
+    lower_col1, lower_col2 = st.columns([1, 1])
     with lower_col1:
         score_comparison_image_base64 = get_base64_image("./image/score_comparison.png")
         st.markdown(
             f"""
-            <div class="box">
+            <div class="box" style="text-align: center;">
                 <h4>Score Comparison by Team</h4>
-                <img src="data:image/png;base64,{score_comparison_image_base64}" width="400">
+                <img src="data:image/png;base64,{score_comparison_image_base64}" width="250">
             </div>
             """,
             unsafe_allow_html=True
         )
-    with lower_col2:
-        field_result_image_base64 = get_base64_image("./image/field_result.png")
-        st.markdown(
-            f"""
-            <div class="box">
-                <h4>Field Results</h4>
-                <img src="data:image/png;base64,{field_result_image_base64}" width="1300">
-            </div>
-            """,
-            unsafe_allow_html=True
-        )
-    with lower_col3:
         team_color_image_base64 = get_base64_image("./image/team_color.png")
+    with lower_col2:
         st.markdown(
             f"""
-            <div class="box">
+            <div class="box" style="text-align: center;">
                 <h4>Team Color</h4>
-                <img src="data:image/png;base64,{team_color_image_base64}" width="300">
+                <img src="data:image/png;base64,{team_color_image_base64}" width="250">
             </div>
             """,
             unsafe_allow_html=True
         )
+
+    # Field Results 단일 박스
+    field_result_image_base64 = get_base64_image("./image/field_result.png")
+    st.markdown(
+        f"""
+        <div class="box" style="text-align: center; height: 400px;">
+            <h4>Field Results</h4>
+            <img src="data:image/png;base64,{field_result_image_base64}" width="800">
+        </div>
+        """,
+        unsafe_allow_html=True
+    )
