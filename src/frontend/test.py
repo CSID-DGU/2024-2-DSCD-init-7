@@ -139,6 +139,9 @@ else:
     st.title("Dashboard")
     final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
 
+    ### 모델 추가해야 하는 파트
+    # model(final_okr_list[1:4])
+
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown(
