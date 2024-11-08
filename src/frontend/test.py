@@ -1,14 +1,14 @@
 import streamlit as st
 import matplotlib.pyplot as plt
+from io import BytesIO
+import base64
 import os
 import sys
-import base64
-from io import BytesIO
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from NLP.extract.extract_okr import extract_okr
 
-# 예제 데이터: score 및 팀 멤버 정의
+# Example data for score and team members
 score = 91.17
 members = [
     {"name": "강성지", "role": "PM(9년차)", "skills": "Agile, Scrum"},
@@ -18,28 +18,64 @@ members = [
     {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
 ]
 
-# Base64로 이미지 인코딩
-def get_base64_image(image_path):
-    with open(image_path, "rb") as img_file:
-        return base64.b64encode(img_file.read()).decode()
+# Helper function to create and return a base64-encoded PNG
+def create_image_placeholder(fig):
+    buf = BytesIO()
+    fig.savefig(buf, format="png", bbox_inches="tight", transparent=True)
+    buf.seek(0)
+    plt.close(fig)
+    return base64.b64encode(buf.getvalue()).decode("utf-8")
 
-# Predictive Performance 원형 그래프를 PNG로 저장하여 Base64로 인코딩
+# Create circular performance chart
 def create_circular_performance_chart(score):
     fig, ax = plt.subplots(figsize=(3, 3), subplot_kw=dict(aspect="equal"))
     colors = ["red", "lightgray"]
     data = [score, 100 - score]
     wedges, texts = ax.pie(data, colors=colors, startangle=90, wedgeprops=dict(width=0.3, edgecolor="w"))
     ax.text(0, 0, f"{score}%", ha='center', va='center', fontsize=14, fontweight='bold')
-    buf = BytesIO()
-    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
-    plt.close(fig)
-    buf.seek(0)
-    return base64.b64encode(buf.getvalue()).decode("utf-8")
+    return create_image_placeholder(fig)
 
-# 페이지 설정
+# Create score comparison chart
+def create_score_comparison_image():
+    fig, ax = plt.subplots()
+    teams = ['Team 1', 'Team 2', 'Team 3', 'Team 4', 'Team 5']
+    scores = [75, 60, 95, 91, 88]
+    ax.barh(teams, scores, color=['#f39c12', '#3498db', '#e74c3c', '#2ecc71', '#9b59b6'])
+    ax.set_title("Score Comparison by Team (Sorted by Score)")
+    ax.set_xlabel("Score")
+    return create_image_placeholder(fig)
+
+# Create team color pie chart
+def create_team_color_image():
+    fig, ax = plt.subplots(figsize=(3, 3), subplot_kw=dict(aspect="equal"))
+    colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6']
+    labels = ['협업능력', '책임감', '문제 해결', '커뮤니케이션', '주도성']
+    data = [22, 15, 11, 17, 20]
+    wedges, texts = ax.pie(data, colors=colors, startangle=90, wedgeprops=dict(width=0.3, edgecolor="w"))
+    ax.legend(wedges, labels, title="Total", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
+    ax.text(0, 0, "ability", ha='center', va='center', fontsize=14, fontweight='bold')
+    return create_image_placeholder(fig)
+
+# Create field results pie charts
+def create_field_results_image():
+    fig, axes = plt.subplots(1, 5, figsize=(15, 3))
+    roles = ['PM', 'Designer', 'Frontend Dev', 'Backend Dev', 'Data Engineer']
+    data = [[30, 20, 15, 25, 10], [20, 30, 20, 15, 15], [25, 25, 20, 20, 10], [40, 15, 30, 10, 5], [30, 10, 15, 35, 10]]
+    colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6']
+    for ax, role, role_data in zip(axes, roles, data):
+        ax.pie(role_data, colors=colors, startangle=90)
+        ax.set_title(role)
+    return create_image_placeholder(fig)
+
+# Load feature importance image from file
+def load_feature_importance_image():
+    with open("./image/feature_importance.png", "rb") as img_file:
+        return base64.b64encode(img_file.read()).decode("utf-8")
+    
+# Streamlit Page Configuration
 st.set_page_config(layout="wide")
 
-# CSS 스타일 정의
+# CSS styling
 st.markdown(
     """
     <style>
@@ -68,17 +104,16 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# 상태 관리: 대시보드 전환 여부 확인
+# State management for dashboard transition
 if 'dashboard' not in st.session_state:
     st.session_state['dashboard'] = False
 
 if not st.session_state['dashboard']:
-    # 파일 업로드 페이지
     st.title("Upload Files")
     file_title = st.text_input("Title", "Input Title")
     uploaded_file = st.file_uploader("Attached Document", type=['pdf', 'docx', 'hwp'], label_visibility="collapsed")
 
-    if st.button("Upload", help="Click to upload your file"):
+    if st.button("Upload"):
         if uploaded_file is not None and file_title:
             save_path = os.path.join("uploaded_files", uploaded_file.name)
             with open(save_path, "wb") as f:
@@ -87,17 +122,14 @@ if not st.session_state['dashboard']:
             st.session_state['uploaded_file_path'] = save_path
             st.session_state['file_title'] = file_title
             st.session_state['dashboard'] = True
-            
             st.success(f"{uploaded_file.name} 파일이 업로드되었습니다.")
         else:
             st.warning("제목과 파일을 모두 입력해 주세요.")
 
 else:
-    # 대시보드 페이지
     st.title("Dashboard")
     final_okr_list = extract_okr(st.session_state['uploaded_file_path'])
 
-    # 상단 프로젝트 설명 및 목표 섹션
     col1, col2 = st.columns([3, 1])
     with col1:
         st.markdown(
@@ -123,7 +155,6 @@ else:
             unsafe_allow_html=True
         )
 
-    # 팀 멤버 섹션
     st.markdown('<div class="section-title">Team Members</div>', unsafe_allow_html=True)
     member_cols = st.columns(5)
     for col, member in zip(member_cols, members):
@@ -138,11 +169,9 @@ else:
             unsafe_allow_html=True
         )
 
-    # 중간 성능 그래프 섹션
     st.markdown('<div class="section-title">Project Insights</div>', unsafe_allow_html=True)
     insights_col1, insights_col2 = st.columns([1, 1])
 
-    # Predictive Performance 그래프 생성 및 표시
     with insights_col1:
         performance_chart_base64 = create_circular_performance_chart(score)
         st.markdown(
@@ -155,9 +184,8 @@ else:
             unsafe_allow_html=True
         )
 
-    # Feature Importance 그래프 (이미지 파일로 표시)
     with insights_col2:
-        feature_importance_image_base64 = get_base64_image("./image/feature_importance.png")
+        feature_importance_image_base64 = load_feature_importance_image()
         st.markdown(
             f"""
             <div class="box" style="text-align: center;">
@@ -168,12 +196,10 @@ else:
             unsafe_allow_html=True
         )
 
-    # Additional Insights 섹션
     st.markdown('<div class="section-title">Additional Insights</div>', unsafe_allow_html=True)
     additional_col1, additional_col2 = st.columns([1, 1])
 
-    # Score Comparison by Team 그래프 표시
-    score_comparison_image_base64 = get_base64_image("./image/score_comparison.png")
+    score_comparison_image_base64 = create_score_comparison_image()
     with additional_col1:
         st.markdown(
             f"""
@@ -185,9 +211,8 @@ else:
             unsafe_allow_html=True
         )
 
-    # Team Color 원형 그래프 표시
-    team_color_image_base64 = get_base64_image("./image/team_color.png")
     with additional_col2:
+        team_color_image_base64 = create_team_color_image()
         st.markdown(
             f"""
             <div class="box" style="text-align: center;">
@@ -198,13 +223,12 @@ else:
             unsafe_allow_html=True
         )
 
-    # Field Results 그래프 표시
-    field_result_image_base64 = get_base64_image("./image/field_result.png")
+    field_results_image_base64 = create_field_results_image()
     st.markdown(
         f"""
         <div class="box" style="text-align: center; height: 350px;">
             <h4>Field Results</h4>
-            <img src="data:image/png;base64,{field_result_image_base64}" width="800">
+            <img src="data:image/png;base64,{field_results_image_base64}" width="800">
         </div>
         """,
         unsafe_allow_html=True
