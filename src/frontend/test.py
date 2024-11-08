@@ -137,7 +137,7 @@ if not st.session_state['dashboard']:
 
 else:
     st.title("Dashboard")
-    final_okr_list = extract_okr(st.session_state['uploaded_file_path'])
+    final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
 
     col1, col2 = st.columns([3, 1])
     with col1:
@@ -145,7 +145,7 @@ else:
             f"""
             <div class="box">
                 <div class="title-box">Title: {st.session_state['file_title']}</div>
-                <p><strong>Content:</strong> {final_okr_list[0][0]}</p>
+                <p><strong>Content:</strong> {final_okr_list[0]}</p>
             </div>
             """,
             unsafe_allow_html=True
@@ -155,10 +155,10 @@ else:
             f"""
             <div class="box">
                 <div class="title-box">Objective and Key Results</div>
-                <p><strong>Objective:</strong> {final_okr_list[0][1]}</p>
-                <p><strong>Key Result 1:</strong> {final_okr_list[0][2]}</p>
-                <p><strong>Key Result 2:</strong> {final_okr_list[0][3]}</p>
-                <p><strong>Key Result 3:</strong> {final_okr_list[0][4]}</p>
+                <p><strong>Objective:</strong> {final_okr_list[1]}</p>
+                <p><strong>Key Result 1:</strong> {final_okr_list[2]}</p>
+                <p><strong>Key Result 2:</strong> {final_okr_list[3]}</p>
+                <p><strong>Key Result 3:</strong> {final_okr_list[4]}</p>
             </div>
             """,
             unsafe_allow_html=True
