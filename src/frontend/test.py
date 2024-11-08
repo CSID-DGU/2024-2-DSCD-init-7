@@ -10,6 +10,7 @@ from NLP.extract.extract_okr import extract_okr
 
 # Example data for score and team members
 score = 91.17
+
 members = [
     {"name": "강성지", "role": "PM(9년차)", "skills": "Agile, Scrum"},
     {"name": "구동현", "role": "UI/UX(3년차)", "skills": "Figma, Adobe"},
@@ -17,6 +18,18 @@ members = [
     {"name": "전현재", "role": "F_Dev(2년차)", "skills": "React, Vue.js"},
     {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
 ]
+
+team_color_data = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
+
+score_comparison_data = {'Team 1': 75, 'Team 2': 60, 'Team 3': 95, 'Team 4': 91, 'Team 5': 88}
+
+field_results_data = {
+        'PM': [30, 20, 15, 25, 10],
+        'Designer': [20, 30, 20, 15, 15],
+        'Frontend Dev': [25, 25, 20, 20, 10],
+        'Backend Dev': [40, 15, 30, 10, 5],
+        'Data Engineer': [30, 10, 15, 35, 10]
+    }
 
 # Helper function to create and return a base64-encoded PNG
 def create_image_placeholder(fig):
@@ -28,42 +41,38 @@ def create_image_placeholder(fig):
 
 # Create circular performance chart
 def create_circular_performance_chart(score):
-    fig, ax = plt.subplots(figsize=(3, 3), subplot_kw=dict(aspect="equal"))
+    fig, ax = plt.subplots(figsize=(4, 4), subplot_kw=dict(aspect="equal"))
     colors = ["red", "lightgray"]
     data = [score, 100 - score]
     wedges, texts = ax.pie(data, colors=colors, startangle=90, wedgeprops=dict(width=0.3, edgecolor="w"))
-    ax.text(0, 0, f"{score}%", ha='center', va='center', fontsize=14, fontweight='bold')
+    ax.text(0, 0, f"{score}%", ha='center', va='center', fontsize=18, fontweight='bold')
     return create_image_placeholder(fig)
 
-# Create score comparison chart
-def create_score_comparison_image():
+# Create score comparison chart from dictionary input
+def create_score_comparison_image(data_dict):
     fig, ax = plt.subplots()
-    teams = ['Team 1', 'Team 2', 'Team 3', 'Team 4', 'Team 5']
-    scores = [75, 60, 95, 91, 88]
+    teams = list(data_dict.keys())
+    scores = list(data_dict.values())
     ax.barh(teams, scores, color=['#f39c12', '#3498db', '#e74c3c', '#2ecc71', '#9b59b6'])
-    ax.set_title("Score Comparison by Team (Sorted by Score)")
     ax.set_xlabel("Score")
     return create_image_placeholder(fig)
 
-# Create team color pie chart
-def create_team_color_image():
+# Create team color pie chart from dictionary input
+def create_team_color_image(data_dict):
     fig, ax = plt.subplots(figsize=(3, 3), subplot_kw=dict(aspect="equal"))
+    labels = list(data_dict.keys())
+    values = list(data_dict.values())
     colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6']
-    labels = ['협업능력', '책임감', '문제 해결', '커뮤니케이션', '주도성']
-    data = [22, 15, 11, 17, 20]
-    wedges, texts = ax.pie(data, colors=colors, startangle=90, wedgeprops=dict(width=0.3, edgecolor="w"))
-    ax.legend(wedges, labels, title="Total", loc="center left", bbox_to_anchor=(1, 0, 0.5, 1))
-    ax.text(0, 0, "ability", ha='center', va='center', fontsize=14, fontweight='bold')
+    wedges, texts = ax.pie(values, labels=labels, colors=colors, startangle=90, wedgeprops=dict(width=0.3, edgecolor="w"))
+    ax.text(0, 0, "ability", ha='center', va='center', fontsize=9, fontweight='bold')
     return create_image_placeholder(fig)
 
-# Create field results pie charts
-def create_field_results_image():
-    fig, axes = plt.subplots(1, 5, figsize=(15, 3))
-    roles = ['PM', 'Designer', 'Frontend Dev', 'Backend Dev', 'Data Engineer']
-    data = [[30, 20, 15, 25, 10], [20, 30, 20, 15, 15], [25, 25, 20, 20, 10], [40, 15, 30, 10, 5], [30, 10, 15, 35, 10]]
+# Create field results pie charts from dictionary input
+def create_field_results_image(data_dict):
+    fig, axes = plt.subplots(1, len(data_dict), figsize=(15, 3))
     colors = ['#e74c3c', '#3498db', '#2ecc71', '#f39c12', '#9b59b6']
-    for ax, role, role_data in zip(axes, roles, data):
-        ax.pie(role_data, colors=colors, startangle=90)
+    for ax, (role, values) in zip(axes, data_dict.items()):
+        ax.pie(values, colors=colors, startangle=90)
         ax.set_title(role)
     return create_image_placeholder(fig)
 
@@ -199,7 +208,7 @@ else:
     st.markdown('<div class="section-title">Additional Insights</div>', unsafe_allow_html=True)
     additional_col1, additional_col2 = st.columns([1, 1])
 
-    score_comparison_image_base64 = create_score_comparison_image()
+    score_comparison_image_base64 = create_score_comparison_image(score_comparison_data)
     with additional_col1:
         st.markdown(
             f"""
@@ -211,8 +220,8 @@ else:
             unsafe_allow_html=True
         )
 
+    team_color_image_base64 = create_team_color_image(team_color_data)
     with additional_col2:
-        team_color_image_base64 = create_team_color_image()
         st.markdown(
             f"""
             <div class="box" style="text-align: center;">
@@ -223,12 +232,12 @@ else:
             unsafe_allow_html=True
         )
 
-    field_results_image_base64 = create_field_results_image()
+    field_results_image_base64 = create_field_results_image(field_results_data)
     st.markdown(
         f"""
         <div class="box" style="text-align: center; height: 350px;">
             <h4>Field Results</h4>
-            <img src="data:image/png;base64,{field_results_image_base64}" width="800">
+            <img src="data:image/png;base64,{field_results_image_base64}" width="1000">
         </div>
         """,
         unsafe_allow_html=True
