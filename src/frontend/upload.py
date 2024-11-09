@@ -4,6 +4,7 @@ from io import BytesIO
 import base64
 import os
 import sys
+import numpy as np
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from NLP.extract.extract_okr import extract_okr
@@ -63,8 +64,15 @@ def create_team_color_image(data_dict):
     labels = list(data_dict.keys())
     values = list(data_dict.values())
     colors = ['#3498db', '#2ecc71', '#e74c3c', '#f39c12', '#9b59b6']
-    wedges, texts = ax.pie(values, labels=labels, colors=colors, startangle=90, wedgeprops=dict(width=0.3, edgecolor="w"))
-    ax.text(0, 0, "ability", ha='center', va='center', fontsize=9, fontweight='bold')
+    wedges, texts = ax.pie(values, labels=labels, colors=colors, startangle=90, wedgeprops=dict(width=0.4, edgecolor="w"))
+    
+    for wedge, value in zip(wedges, values):
+        angle = (wedge.theta2 - wedge.theta1) / 2 + wedge.theta1  # 각도 계산
+        x = wedge.r * 0.8 * np.cos(angle * np.pi / 180)           # X 좌표
+        y = wedge.r * 0.8 * np.sin(angle * np.pi / 180)           # Y 좌표
+        ax.text(x, y, f"{value}", ha='center', va='center', fontsize=10, color="black", fontweight="bold")
+
+    ax.text(0, 0, "ability", ha='center', va='center', fontsize=9, fontweight='normal')
     return create_image_placeholder(fig)
 
 # Create field results pie charts from dictionary input
@@ -104,7 +112,7 @@ st.markdown(
         margin-bottom: 10px;
     }
     .section-title {
-        font-size: 24px;
+        font-size: 30px;
         font-weight: bold;
         margin-top: 20px;
     }
@@ -217,7 +225,7 @@ else:
             f"""
             <div class="box" style="text-align: center;">
                 <h4>Score Comparison by Team</h4>
-                <img src="data:image/png;base64,{score_comparison_image_base64}" width="400">
+                <img src="data:image/png;base64,{score_comparison_image_base64}" width="350">
             </div>
             """,
             unsafe_allow_html=True
