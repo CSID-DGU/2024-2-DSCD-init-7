@@ -156,7 +156,7 @@ else:
             f"""
             <div class="box">
                 <div class="title-box">Title: {st.session_state['file_title']}</div>
-                <p><strong>Content:</strong> {final_okr_list[0]}</p>
+                <p style="font-size: 22px;"><strong>Content:</strong> {final_okr_list[0]}</p>
             </div>
             """,
             unsafe_allow_html=True
