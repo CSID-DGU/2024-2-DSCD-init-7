@@ -163,7 +163,7 @@ def extract_okr(doc_path, threshold=0.5, weight=1.2):
     final_okr_list = []
 
     for obj, kr in zip(obj_list, kr_list):
-        final_okr_list.append([obj] + kr)  # obj와 kr1, kr2, kr3을 하나의 리스트로 결합
+        final_okr_list.append(project_performance + [obj] + kr)  # obj와 kr1, kr2, kr3을 하나의 리스트로 결합
 
     return final_okr_list
 
