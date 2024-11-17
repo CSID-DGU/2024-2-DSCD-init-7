@@ -118,7 +118,6 @@ if st.session_state['dashboard']:
     # model을 여기 넣기
 
 
-
     predict_score = 91
 
     members = [
@@ -129,9 +128,13 @@ if st.session_state['dashboard']:
         {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
     ]
 
+    #members = [1, 23, 45, 77, 89]
+
+    # db로 접근해서 role, skills 가져오는 방법
+
     skills = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
 
-    scores = {"Team 1": 70, "Team 2": 85, "Team 3": 95, "Team 4": 60, "Team 5": 78}
+    scores = {"1, 23, 64": 70, "Team 2": 85, "Team 3": 95, "Team 4": 60, "Team 5": 78}
 
     field_data = {
             'PM': [30, 20, 15, 25, 10],
@@ -140,6 +143,8 @@ if st.session_state['dashboard']:
             'Backend Dev': [40, 15, 30, 10, 5],
             'Data Engineer': [30, 10, 15, 35, 10]
         }
+    
+    matrix = np.random.rand(6, 19)
 
     st.markdown('<div class="container"><div class="title">Dashboard</div></div>', unsafe_allow_html=True)
 
@@ -187,35 +192,25 @@ if st.session_state['dashboard']:
     # 도넛 차트 섹션
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-        donut_chart_base64 = create_donut_chart(predict_score, "Performance")
-        st.markdown(
-            f"""
-            <div class="container" style="text-align: center;">
-                <h4>Predictive Performance</h4>
-                <img src="data:image/png;base64,{donut_chart_base64}" style="max-width: 100%; margin: 0 auto;">
-            </div>
-            """, unsafe_allow_html=True
+    # 도넛 차트를 plotly로 렌더링
+        fig = px.pie(
+            names=["Performance", "Remaining"],
+            values=[predict_score, 100 - predict_score],
+            hole=0.5,
+            title="Predictive Performance",
         )
+        fig.update_traces(textinfo='none')  # 중앙 텍스트 제거
+        st.plotly_chart(fig, use_container_width=True)
 
-    # 열 지도 예시 (Heatmap)
     with col2:
-        data = np.random.rand(10, 10)
-        fig, ax = plt.subplots(figsize=(4, 4))
-        cax = ax.matshow(data, cmap='coolwarm')
-        plt.colorbar(cax)
-        plt.title("Feature Importance", pad=20)
-        buf = BytesIO()
-        plt.savefig(buf, format="png", bbox_inches="tight")
-        buf.seek(0)
-        base64_img = base64.b64encode(buf.getvalue()).decode("utf-8")
-        st.markdown(
-            f"""
-            <div class="container" style="text-align: center;">
-                <h4>Feature Importance</h4>
-                <img src="data:image/png;base64,{base64_img}" style="max-width: 100%; margin: 0 auto;">
-            </div>
-            """, unsafe_allow_html=True
+    # 열 지도(Heatmap)를 plotly로 렌더링
+        fig = px.imshow(
+            matrix,
+            color_continuous_scale="RdBu",  # 변경된 부분: Plotly에서 지원하는 colorscale 사용
+            title="Feature Importance",
+            labels=dict(color="Importance"),
         )
+        st.plotly_chart(fig, use_container_width=True)
 
     # 팀 점수 비교 차트
     with col3:
