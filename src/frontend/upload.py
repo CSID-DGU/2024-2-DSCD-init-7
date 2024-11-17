@@ -102,21 +102,6 @@ st.markdown("""
 if st.session_state.get('dashboard', False):
     st.markdown('<div class="dashboard-title">Dashboard</div>', unsafe_allow_html=True)
 
-
-
-# Helper function to create donut charts
-def create_donut_chart(score, label):
-    fig, ax = plt.subplots(figsize=(3, 3), subplot_kw=dict(aspect="equal"))
-    colors = ["#3498db", "#ecf0f1"]
-    data = [score, 100 - score]
-    wedges, _ = ax.pie(data, colors=colors, startangle=90, wedgeprops=dict(width=0.3, edgecolor="w"))
-    ax.text(0, 0, f"{score}%", ha='center', va='center', fontsize=18, fontweight='bold')
-    buf = BytesIO()
-    plt.savefig(buf, format="png", bbox_inches="tight", transparent=True)
-    buf.seek(0)
-    plt.close(fig)
-    return base64.b64encode(buf.getvalue()).decode("utf-8")
-
 # 파일 업로드 섹션
 if 'dashboard' not in st.session_state:
     st.session_state['dashboard'] = False
