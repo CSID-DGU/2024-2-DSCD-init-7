@@ -134,7 +134,7 @@ if st.session_state['dashboard']:
 
     skills = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
 
-    scores = {"1, 23, 64": 70, "Team 2": 85, "Team 3": 95, "Team 4": 60, "Team 5": 78}
+    scores = {"[1, 23, 64, 65, 71]": 70, "[2, 24, 62, 89, 91]": 85, "[20, 40, 60, 80, 100]": 95, "[5, 25, 41, 66, 88]": 60, "[7, 17, 27, 48, 71]": 78}
 
     field_data = {
             'PM': [30, 20, 15, 25, 10],
@@ -200,6 +200,15 @@ if st.session_state['dashboard']:
             title="Predictive Performance",
         )
         fig.update_traces(textinfo='none')  # 중앙 텍스트 제거
+        fig.add_annotation(
+            text=f"{predict_score}%",
+            x=0.5,
+            y=0.5,
+            showarrow=False,
+            font=dict(size=20, color="black"),
+            xref="paper",
+            yref="paper",
+        )
         st.plotly_chart(fig, use_container_width=True)
 
     with col2:
@@ -214,7 +223,24 @@ if st.session_state['dashboard']:
 
     # 팀 점수 비교 차트
     with col3:
-        fig = px.bar(x=list(scores.keys()), y=list(scores.values()), labels={'x': "Team", 'y': "Score"}, title="Score Comparison")
+        # 데이터 정렬
+        sorted_scores = dict(sorted(scores.items(), key=lambda item: item[1], reverse=False))
+        
+        # 점수에 '%' 추가
+        scores_with_percentage = [f"{value}%" for value in sorted_scores.values()]
+
+        # 막대 그래프 생성 (가로 방향)
+        fig = px.bar(
+            x=list(sorted_scores.values()),
+            y=list(sorted_scores.keys()),
+            labels={'x': "Score", 'y': "Team"},
+            title="Score Comparison",
+            orientation="h"  # 막대 그래프를 가로 방향으로 설정
+        )
+        fig.update_traces(
+            text=scores_with_percentage,
+            textposition="outside",  # 텍스트를 막대 끝에 표시
+        )
         st.plotly_chart(fig, use_container_width=True)
 
     # 팀 기술 스킬 차트
@@ -227,5 +253,11 @@ if st.session_state['dashboard']:
     
     col1, col2, col3, col4, col5 = st.columns(5)
     for col, (key, values) in zip([col1, col2, col3, col4, col5], field_data.items()):
-        fig = px.pie(values=values, names=[f"Category {i}" for i in range(len(values))], title=key)
+        # 각 키를 레이블로 사용
+        labels = list(skills.keys())  # Collaboration, Responsibility 등
+        fig = px.pie(
+            values=values,
+            names=labels[:len(values)],  # 레이블을 기술 항목 이름으로 설정
+            title=key
+        )
         col.plotly_chart(fig, use_container_width=True)
