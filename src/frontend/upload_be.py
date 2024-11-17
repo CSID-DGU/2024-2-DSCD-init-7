@@ -7,12 +7,11 @@ from io import BytesIO
 import base64
 import os
 import sys
+import mysql.connector
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from NLP.extract.extract_okr import extract_okr
 
-
-import mysql.connector
 
 # MySQL 서버에 연결
 conn = mysql.connector.connect(
@@ -44,13 +43,13 @@ st.markdown("""
         color: #2c3e50;
         margin-bottom: 10px;
     }
-    .dashboard-title { /* 새롭게 추가된 부분 */
-        font-size: 60px; /* 제목 크기 */
-        font-weight: bold; /* 굵은 글씨 */
-        color: #2c3e50; /* 글씨 색상 */
-        text-align: center; /* 중앙 정렬 */
-        margin-top: 20px; /* 위쪽 여백 */
-        margin-bottom: 40px; /* 아래쪽 여백 */
+    .dashboard-title {
+        font-size: 60px;
+        font-weight: bold;
+        color: #2c3e50;
+        text-align: center;
+        margin-top: 20px;
+        margin-bottom: 40px;
     }
     .metric-box {
         text-align: center;
@@ -89,6 +88,22 @@ st.markdown("""
         font-size: 12px;
         color: #6c757d;
     }
+    /* Objective 내용 스타일 */
+    .objective-content {
+        font-size: 25px; /* 글씨 크기 조정 */
+        font-weight: bold; /* 굵게 */
+        color: #2c3e50; /* 색상 */
+        margin-bottom: 10px; /* 아래 여백 */
+    .project-details-title {
+        font-size: 30px; /* Project Details 제목 크기 */
+        font-weight: bold;
+        color: #2c3e50;
+    }
+    .objective-key-results-title {
+        font-size: 30px; /* Objective and Key Results 제목 크기 */
+        font-weight: bold;
+        color: #2c3e50;
+    }
     </style>
 """, unsafe_allow_html=True)
 
@@ -124,10 +139,6 @@ if st.session_state['dashboard']:
     final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
 
     # model을 여기 넣기
-
-
-    predict_score = 91
-
     # member 리스트
     member_list = [1, 11, 21, 31, 41]
 
@@ -174,12 +185,12 @@ if st.session_state['dashboard']:
             for member, task, stack in zip(member_list, task_list, stack_list)
         ]
 
-        # 결과 출력
-        print(members)
     else:
         print("Lists have mismatched lengths. Please check the input data.")
 
-    # db로 접근해서 role, skills 가져오는 방법
+    # model을 여기 넣기
+
+    predict_score = 91
 
     skills = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
 
@@ -198,108 +209,126 @@ if st.session_state['dashboard']:
     # Title and Objective 섹션
     st.markdown(f"""
     <div class="container">
-        <div class="title">Project Details</div>
-        <div class="title-box"><strong>Title:</strong> {st.session_state['file_title']}</div> <!-- Title을 굵은 글씨로 수정 -->
-        <p><strong>Content:</strong> {final_okr_list[0]}</p>
+        <div class="project-title" style="font-size:30px; font-weight:bold;">Project Details</div>
+        <div class="title-box" style="font-size:20px;"><strong>Title:</strong> {st.session_state['file_title']}</div>
+        <p style="font-size:18px;"><strong>Content:</strong> {final_okr_list[0]}</p>
     </div>
-""", unsafe_allow_html=True)
-
+    """, unsafe_allow_html=True)
 
     st.markdown(f"""
-        <div class="container">
-            <div class="title">Objective and Key Results</div>
-            <ul>
-                <li><strong>Objective:</strong> {final_okr_list[1]}</li>
-                <li><strong>Key Result 1:</strong> {final_okr_list[2]}</li>
-                <li><strong>Key Result 2:</strong> {final_okr_list[3]}</li>
-                <li><strong>Key Result 3:</strong> {final_okr_list[4]}</li>
-            </ul>
-        </div>
+    <div class="container">
+        <div class="okr-title" style="font-size:28px; font-weight:bold;">Objective and Key Results</div>
+        <p style="font-size:22px;"><strong>Objective:</strong> {final_okr_list[1]}</p>
+        <ul style="font-size:20px;">
+            <li><strong>Key Result 1:</strong> {final_okr_list[2]}</li>
+            <li><strong>Key Result 2:</strong> {final_okr_list[3]}</li>
+            <li><strong>Key Result 3:</strong> {final_okr_list[4]}</li>
+        </ul>
+    </div>
     """, unsafe_allow_html=True)
 
     # Members Section
-    st.markdown('<div class="container"><div class="title">Team Members</div></div>', unsafe_allow_html=True)
+    st.markdown(f"""
+    <div class="container">
+        <div class="members-title" style="font-size:28px; font-weight:bold;">Team Members</div>
+    </div>
+    """, unsafe_allow_html=True)
+
     cols = st.columns(len(members))
     for col, member in zip(cols, members):
         col.markdown(f"""
-            <div class="member-box">
-                <div class="member-name">{member['name']}</div>
-                <div class="member-role">{member['role']}</div>
-                <div class="member-skills">{member['skills']}</div>
+            <div class="member-box" style="text-align:center; padding:10px; border:1px solid #ccc; border-radius:8px;">
+                <div class="member-name" style="font-size:16px; font-weight:bold;">{member['name']}</div>
+                <div class="member-role" style="font-size:14px;">{member['role']}</div>
+                <div class="member-skills" style="font-size:12px; color:#6c757d;">{member['skills']}</div>
             </div>
         """, unsafe_allow_html=True)
 
+        # 고정된 색상 팔레트
+    color_mapping = {
+        "Collaboration": "#2B66C2",  # 진한 파란색
+        "Initiative": "#57AD9D",     # 청록색
+        "Communication": "#F3AFAD", # 주황색
+        "Responsibility": "#EB4339", # 밝은 주황색
+        "Problem Solving": "#93C7FA" # 노란색
+    }
 
+    # 차트 섹션
+    st.markdown('<div class="container"><div class="chart-title" style="font-size:28px; font-weight:bold;">Charts</div></div>', unsafe_allow_html=True)
 
-    # 도넛 차트 섹션
     col1, col2, col3, col4 = st.columns(4)
     with col1:
-    # 도넛 차트를 plotly로 렌더링
+        # 도넛 차트를 plotly로 렌더링
         fig = px.pie(
             names=["Performance", "Remaining"],
             values=[predict_score, 100 - predict_score],
-            hole=0.5,
+            hole=0.5,  # 구멍 크기 설정
             title="Predictive Performance",
         )
-        fig.update_traces(textinfo='none')  # 중앙 텍스트 제거
+        fig.update_traces(
+            textinfo='none',  # 조각 내부 텍스트 제거
+            marker=dict(colors=["#3498db", "#ecf0f1"])  # 색상 고정
+        )
+        # 중앙 텍스트 추가
         fig.add_annotation(
-            text=f"{predict_score}%",
+            text=f"{predict_score}%",  # 중앙에 표시할 텍스트
             x=0.5,
             y=0.5,
             showarrow=False,
-            font=dict(size=20, color="black"),
+            font=dict(size=22, color="black"),  # 텍스트 크기 및 색상 설정
             xref="paper",
             yref="paper",
         )
         st.plotly_chart(fig, use_container_width=True)
 
+
     with col2:
-    # 열 지도(Heatmap)를 plotly로 렌더링
-        fig = px.imshow(
-            matrix,
-            color_continuous_scale="RdBu",  # 변경된 부분: Plotly에서 지원하는 colorscale 사용
-            title="Feature Importance",
-            labels=dict(color="Importance"),
-        )
+        fig = px.imshow(matrix, color_continuous_scale="RdBu", title="Feature Importance", labels=dict(color="Importance"))
         st.plotly_chart(fig, use_container_width=True)
 
-    # 팀 점수 비교 차트
     with col3:
-        # 데이터 정렬
         sorted_scores = dict(sorted(scores.items(), key=lambda item: item[1], reverse=False))
-        
-        # 점수에 '%' 추가
         scores_with_percentage = [f"{value}%" for value in sorted_scores.values()]
-
+        
         # 막대 그래프 생성 (가로 방향)
         fig = px.bar(
             x=list(sorted_scores.values()),
             y=list(sorted_scores.keys()),
             labels={'x': "Score", 'y': "Team"},
             title="Score Comparison",
-            orientation="h"  # 막대 그래프를 가로 방향으로 설정
+            orientation="h",  # 막대 그래프를 가로 방향으로 설정
+            text=scores_with_percentage  # 텍스트 추가
         )
+        
         fig.update_traces(
-            text=scores_with_percentage,
             textposition="outside",  # 텍스트를 막대 끝에 표시
+            marker_color="#3498db"  # 막대 색상
+        )
+        
+        st.plotly_chart(fig, use_container_width=True)
+
+    with col4:
+        fig = px.pie(
+            values=list(skills.values()), 
+            names=list(skills.keys()), 
+            title="Team Skills",
+            color=list(skills.keys()),  # 색상 매핑할 이름
+            color_discrete_map=color_mapping  # 고정된 색상 적용
         )
         st.plotly_chart(fig, use_container_width=True)
 
-    # 팀 기술 스킬 차트
-    with col4:
-        fig = px.pie(values=list(skills.values()), names=list(skills.keys()), title="Team Skills")
-        st.plotly_chart(fig, use_container_width=True)
 
-    # Field Results 섹션
+    # Field Results 섹션 (개별 역할별 차트)
     st.markdown('<div class="container"><div class="title">Field Results</div></div>', unsafe_allow_html=True)
-    
     col1, col2, col3, col4, col5 = st.columns(5)
-    for col, (key, values) in zip([col1, col2, col3, col4, col5], field_data.items()):
-        # 각 키를 레이블로 사용
-        labels = list(skills.keys())  # Collaboration, Responsibility 등
+
+    for col, (role, values) in zip([col1, col2, col3, col4, col5], field_data.items()):
+        # 고정된 기술 순서에 맞게 값 매핑
         fig = px.pie(
             values=values,
-            names=labels[:len(values)],  # 레이블을 기술 항목 이름으로 설정
-            title=key
+            names=list(skills.keys()),  # 고정된 기술 이름 순서
+            title=role,
+            color=list(skills.keys()),  # 색상 매핑할 이름
+            color_discrete_map=color_mapping  # 고정된 색상 적용
         )
         col.plotly_chart(fig, use_container_width=True)
