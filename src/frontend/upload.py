@@ -11,27 +11,6 @@ import sys
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from NLP.extract.extract_okr import extract_okr
 
-predict_score = 91
-
-members = [
-    {"name": "강성지", "role": "PM(9년차)", "skills": "Agile, Scrum"},
-    {"name": "구동현", "role": "UI/UX(3년차)", "skills": "Figma, Adobe"},
-    {"name": "김승현", "role": "D_Eng(4년차)", "skills": "SQL, Python"},
-    {"name": "전현재", "role": "F_Dev(2년차)", "skills": "React, Vue.js"},
-    {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
-]
-
-skills = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
-
-scores = {"Team 1": 70, "Team 2": 85, "Team 3": 95, "Team 4": 60, "Team 5": 78}
-
-field_data = {
-        'PM': [30, 20, 15, 25, 10],
-        'Designer': [20, 30, 20, 15, 15],
-        'Frontend Dev': [25, 25, 20, 20, 10],
-        'Backend Dev': [40, 15, 30, 10, 5],
-        'Data Engineer': [30, 10, 15, 35, 10]
-    }
 
 # Streamlit 페이지 설정
 st.set_page_config(page_title="Enhanced Dashboard", layout="wide", page_icon="📊")
@@ -135,6 +114,32 @@ if not st.session_state['dashboard']:
 # 대시보드 섹션
 if st.session_state['dashboard']:
     final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
+
+    # model을 여기 넣기
+
+
+
+    predict_score = 91
+
+    members = [
+        {"name": "강성지", "role": "PM(9년차)", "skills": "Agile, Scrum"},
+        {"name": "구동현", "role": "UI/UX(3년차)", "skills": "Figma, Adobe"},
+        {"name": "김승현", "role": "D_Eng(4년차)", "skills": "SQL, Python"},
+        {"name": "전현재", "role": "F_Dev(2년차)", "skills": "React, Vue.js"},
+        {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
+    ]
+
+    skills = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
+
+    scores = {"Team 1": 70, "Team 2": 85, "Team 3": 95, "Team 4": 60, "Team 5": 78}
+
+    field_data = {
+            'PM': [30, 20, 15, 25, 10],
+            'Designer': [20, 30, 20, 15, 15],
+            'Frontend Dev': [25, 25, 20, 20, 10],
+            'Backend Dev': [40, 15, 30, 10, 5],
+            'Data Engineer': [30, 10, 15, 35, 10]
+        }
 
     st.markdown('<div class="container"><div class="title">Dashboard</div></div>', unsafe_allow_html=True)
 
