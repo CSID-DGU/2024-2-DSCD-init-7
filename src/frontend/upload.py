@@ -15,7 +15,6 @@ from NLP.extract.extract_okr import extract_okr
 # Streamlit 페이지 설정
 st.set_page_config(page_title="Enhanced Dashboard", layout="wide", page_icon="📊")
 
-# CSS 스타일 추가
 st.markdown("""
     <style>
     body {
@@ -34,6 +33,14 @@ st.markdown("""
         font-weight: bold;
         color: #2c3e50;
         margin-bottom: 10px;
+    }
+    .dashboard-title { /* 새롭게 추가된 부분 */
+        font-size: 60px; /* 제목 크기 */
+        font-weight: bold; /* 굵은 글씨 */
+        color: #2c3e50; /* 글씨 색상 */
+        text-align: center; /* 중앙 정렬 */
+        margin-top: 20px; /* 위쪽 여백 */
+        margin-bottom: 40px; /* 아래쪽 여백 */
     }
     .metric-box {
         text-align: center;
@@ -74,6 +81,12 @@ st.markdown("""
     }
     </style>
 """, unsafe_allow_html=True)
+
+# Dashboard 제목 표시: 조건 추가
+if st.session_state.get('dashboard', False):
+    st.markdown('<div class="dashboard-title">Dashboard</div>', unsafe_allow_html=True)
+
+
 
 # Helper function to create donut charts
 def create_donut_chart(score, label):
@@ -146,15 +159,15 @@ if st.session_state['dashboard']:
     
     matrix = np.random.rand(6, 19)
 
-    st.markdown('<div class="container"><div class="title">Dashboard</div></div>', unsafe_allow_html=True)
-
     # Title and Objective 섹션
     st.markdown(f"""
-        <div class="container">
-            <div class="title-box">Title: {st.session_state['file_title']}</div>
-            <p><strong>Content:</strong> {final_okr_list[0]}</p>
-        </div>
-    """, unsafe_allow_html=True)
+    <div class="container">
+        <div class="title">Project Details</div>
+        <div class="title-box"><strong>Title:</strong> {st.session_state['file_title']}</div> <!-- Title을 굵은 글씨로 수정 -->
+        <p><strong>Content:</strong> {final_okr_list[0]}</p>
+    </div>
+""", unsafe_allow_html=True)
+
 
     st.markdown(f"""
         <div class="container">
@@ -180,14 +193,7 @@ if st.session_state['dashboard']:
             </div>
         """, unsafe_allow_html=True)
 
-    # 메트릭 카드 섹션
-    col1, col2, col3 = st.columns(3)
-    with col1:
-        st.markdown('<div class="metric-box"><div class="metric-title">Completion Rate</div><div class="metric-value">91%</div></div>', unsafe_allow_html=True)
-    with col2:
-        st.markdown('<div class="metric-box"><div class="metric-title">Accuracy</div><div class="metric-value">88%</div></div>', unsafe_allow_html=True)
-    with col3:
-        st.markdown('<div class="metric-box"><div class="metric-title">User Satisfaction</div><div class="metric-value">92%</div></div>', unsafe_allow_html=True)
+
 
     # 도넛 차트 섹션
     col1, col2, col3, col4 = st.columns(4)
