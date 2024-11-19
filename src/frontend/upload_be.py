@@ -15,11 +15,15 @@ from NLP.extract.extract_okr import extract_okr
 
 # MySQL 서버에 연결
 conn = mysql.connector.connect(
-    host='192.168.1.40',      # 호스트 이름
+    host='10.80.11.114', # 학교 호스트 (DGU-WIFI)
+    #host='170.20.10.2', # 핫스팟 호스트 이름 (현재 핫스팟)
     user='initmember',       # MySQL 사용자 이름
     password='qweqsame1231',   # MySQL 사용자 비밀번호
     database='employee'  # 연결할 데이터베이스 이름
 )
+
+# model을 여기 넣기
+
 
 # Streamlit 페이지 설정
 st.set_page_config(page_title="Enhanced Dashboard", layout="wide", page_icon="📊")
@@ -138,9 +142,23 @@ if not st.session_state['dashboard']:
 if st.session_state['dashboard']:
     final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
 
-    # model을 여기 넣기
-    # member 리스트
+    predict_score = 91
+
     member_list = [1, 11, 21, 31, 41]
+
+    skills = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
+
+    scores = {"[1, 23, 64, 65, 71]": 70, "[2, 24, 62, 89, 91]": 85, "[20, 40, 60, 80, 100]": 95, "[5, 25, 41, 66, 88]": 60, "[7, 17, 27, 48, 71]": 78}
+
+    field_data = {
+            'PM': [30, 20, 15, 25, 10],
+            'Designer': [20, 30, 20, 15, 15],
+            'Frontend Dev': [25, 25, 20, 20, 10],
+            'Backend Dev': [40, 15, 30, 10, 5],
+            'Data Engineer': [30, 10, 15, 35, 10]
+        }
+    
+    matrix = np.random.rand(6, 19)
 
     # SQL 쿼리 생성
     query = f"""
@@ -175,7 +193,7 @@ if st.session_state['dashboard']:
         # 연결 종료
         conn.close()
 
-    # 기술 스택 리스트
+    # 기술 스택 리스트 (수정해야 함)
     stack_list = ['Agile, Scrum', 'Figma, Adobe', 'SQL, Python', 'React, Vue.js', 'Node.js']
 
     # members 리스트 생성
@@ -187,24 +205,6 @@ if st.session_state['dashboard']:
 
     else:
         print("Lists have mismatched lengths. Please check the input data.")
-
-    # model을 여기 넣기
-
-    predict_score = 91
-
-    skills = {'Collaboration': 22, 'Responsibility': 15, 'Problem Solving': 11, 'Communication': 17, 'Initiative': 20}
-
-    scores = {"[1, 23, 64, 65, 71]": 70, "[2, 24, 62, 89, 91]": 85, "[20, 40, 60, 80, 100]": 95, "[5, 25, 41, 66, 88]": 60, "[7, 17, 27, 48, 71]": 78}
-
-    field_data = {
-            'PM': [30, 20, 15, 25, 10],
-            'Designer': [20, 30, 20, 15, 15],
-            'Frontend Dev': [25, 25, 20, 20, 10],
-            'Backend Dev': [40, 15, 30, 10, 5],
-            'Data Engineer': [30, 10, 15, 35, 10]
-        }
-    
-    matrix = np.random.rand(6, 19)
 
     # Title and Objective 섹션
     st.markdown(f"""
