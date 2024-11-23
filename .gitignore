@@ -1,3 +1,4 @@
 .env
 src/data/
 src/frontend/uploaded_files
+src/backend/*.npy
