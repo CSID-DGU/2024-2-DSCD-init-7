@@ -85,7 +85,7 @@ def natural_normalize(data):
 def ability(data, top_index):
     ab=data[top_index,:,0:-3]
     top_ab=ab.mean(axis=1)
-    top_1_ab=ab[0].mean(axis=1)
+    top_1_ab=top_ab[0]
     return top_ab,top_1_ab
 
 #4 Team Synergy Analysis
