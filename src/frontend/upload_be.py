@@ -105,16 +105,54 @@ st.markdown("""
 
 # DB 연동을 시뮬레이션하는 함수들
 def get_member_info(member_id):
+    # SQL 쿼리 생성
+    query = f"""
+    SELECT task
+    FROM member_based_okr_assignments
+    WHERE Member IN ({member_id})
+    """
+
+    try:
+        id_list = [member_id]
+        cursor = conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()  # 결과를 가져옴 (리스트 형태)
+        task_list = [row[0] for row in result]  # 결과를 1차원 리스트로 변환
+        # 역할 매핑
+        role_mapping = {
+            "pm": "Project Manager",
+            "data": "Data Engineer",
+            "frontend": "Frontend Engineer",
+            "backend": "Backend Engineer",
+            "design": "UI/UX Designer"
+        }
+
+        # task_list에서 매핑 수행
+        task_list = [
+            role_mapping[task] if task in role_mapping else task
+            for task in task_list
+        ]
+
     
-    # 실제로는 DB에서 가져와야 하는 정보
-    member_db = {
-        1: {"name": "강성지", "role": "PM(9년차)", "skills": "Agile, Scrum"},
-        2: {"name": "구동현", "role": "UI/UX(3년차)", "skills": "Figma, Adobe"},
-        3: {"name": "김승현", "role": "D_Eng(4년차)", "skills": "SQL, Python"},
-        4: {"name": "전현재", "role": "F_Dev(2년차)", "skills": "React, Vue.js"},
-        5: {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
-    }
-    return member_db.get(member_id, {"name": f"Member {member_id}", "role": "Unknown", "skills": "Unknown"})
+    finally:
+        # 연결 종료
+        cursor.close()
+
+    stack_list = ['Node.js']
+
+    print(len(id_list), len(task_list), len(stack_list))
+    # members 리스트 생성
+    if len(id_list) == len(task_list) == len(stack_list):
+        print(id_list, task_list, stack_list)
+        members = {
+            member: {"name": ('Member ' + str(int(member))), 
+                  "role": task, 
+                  "skills": skills}
+            for idx, (member, task, skills) in enumerate(zip(id_list, task_list, stack_list))
+        }
+
+        return members.get(member_id, {"name": f"Member {member_id}", "role": "Unknown", "skills": "Unknown"})
+
 
 def get_member_name(member_id):
     return get_member_info(member_id)["name"]
