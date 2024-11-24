@@ -1,55 +1,57 @@
+from backend.preprocessing import sort_and_transform_data
+from backend.model import load_model_weights, make_predictions
 import mysql.connector
 import pandas as pd
-from backend.data_processing import preprocess_member_okr
-from backend.similarity_utils import calculate_weighted_scores
-from backend.model_utils import generate_combinations_3d, load_model, predict_with_model
-from sentence_transformers import SentenceTransformer
+import numpy as np
 
 def main():
-    # Step 1: 데이터베이스 연결 및 데이터 로드
+    # MySQL 연결 및 데이터 로드
     conn = mysql.connector.connect(
         host='127.0.0.1',
         user='root',
         password='hj010701',
         database='employee'
     )
+
     cursor = conn.cursor()
 
-    # 데이터 가져오기
+    # member_assign_50to100 데이터 가져오기
     cursor.execute("SELECT * FROM member_assign_50to100")
-    member_assign = pd.DataFrame(cursor.fetchall(), columns=[col[0] for col in cursor.description])
+    result = cursor.fetchall()
+    column_names = [i[0] for i in cursor.description]
+    member_df = pd.DataFrame(result, columns=column_names)
 
+    # okr_30to60 데이터 가져오기
     cursor.execute("SELECT * FROM okr_30to60")
-    okr_data = pd.DataFrame(cursor.fetchall(), columns=[col[0] for col in cursor.description])
+    result = cursor.fetchall()
+    column_names = [i[0] for i in cursor.description]
+    okr_df = pd.DataFrame(result, columns=column_names)
 
-    cursor.execute('''
-        SELECT *
-        FROM member_assign_50to100
-        JOIN okr_30to60
-        ON okr_30to60.OKR_NUM IN (
-            member_assign_50to100.project1, 
-            member_assign_50to100.project2, 
-            member_assign_50to100.project3
-        );
-    ''')
-    member_okr = pd.DataFrame(cursor.fetchall(), columns=[col[0] for col in cursor.description])
+    # 데이터 정렬 및 변환
+    sorted_data = sort_and_transform_data(member_df, member_df.shape[1])
 
-    # Step 2: 데이터 전처리
-    processed_data = preprocess_member_okr(member_okr)
+    # 모델 로드
+    model = load_model_weights(
+        model_path='models/best_model_weights.pth',
+        embedding_dim=19,
+        seq_len=5,
+        output_dim=1,
+        n_heads=1,
+        n_layers=3,
+        hidden_dim=64,
+        dropout_rate=0.2,
+    )
 
-    # Step 3: 유사도 및 가중 점수 계산
-    n_okr = "Your custom OKR here"
-    model = SentenceTransformer('paraphrase-MiniLM-L6-v2')
-    weighted_scores = calculate_weighted_scores(member_okr, model, n_okr)
+    # 데이터 준비
+    final_data_f = np.array(sorted_data)
 
-    # Step 4: 조합 생성 및 모델 예측
-    data_3d = generate_combinations_3d(processed_data, num_parts=5)
-    team_model = load_model()
-    predictions = predict_with_model(team_model, data_3d)
+    # 예측 수행
+    predictions, transformer_outputs = make_predictions(model, final_data_f, batch_size=512)
 
-    # Step 5: 결과 병합
-    data_3d[:, :, -1] = predictions
-    print(data_3d)
+    # 결과 출력 (필요에 따라 후처리)
+    print("Predictions:", predictions)
 
+# 스크립트 실행 여부 확인
 if __name__ == "__main__":
     main()
+
