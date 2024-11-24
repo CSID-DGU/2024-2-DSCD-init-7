@@ -63,8 +63,8 @@ for epoch in range(epochs):
 
     # Training & Validation Loop
     for batch_idx, (batch_inputs_total, batch_targets) in enumerate(train_loader):
-        batch_inputs= batch_inputs_total[:, :, :-1]
-        batch_inputs_num= batch_inputs_total[:, :, -1]
+        batch_inputs= batch_inputs_total[:, :, :-2]
+        batch_inputs_num= batch_inputs_total[:, :, -2:]
 
         # Training Step
         batch_inputs, batch_targets = batch_inputs.to(device), batch_targets.to(device)
@@ -88,8 +88,8 @@ for epoch in range(epochs):
             # val_inputs, val_targets = val_inputs.to(device), val_targets.to(device)
             # val_output, transformer_out = model(val_inputs)
             val_inputs_total, val_targets = next(iter(val_loader))  # Validation 데이터를 매 배치마다 하나 가져옴
-            val_inputs = val_inputs_total[:, :, :-1].to(device)  # Validation 입력 데이터에서 마지막 열 제외
-            val_inputs_num = val_inputs_total[:, :, -1].int()  # Validation 입력 데이터에서 마지막 열만 가져옴
+            val_inputs = val_inputs_total[:, :, :-2].to(device)  # Validation 입력 데이터에서 마지막 열 제외
+            val_inputs_num = val_inputs_total[:, :, -2:].int()  # Validation 입력 데이터에서 마지막 열만 가져옴
             val_targets = val_targets.to(device)
             val_output, transformer_out = model(val_inputs)
             transformer_out_list.append(transformer_out.detach().cpu().numpy())
