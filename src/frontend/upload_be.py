@@ -104,61 +104,17 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # DB 연동을 시뮬레이션하는 함수들
-def get_member_info(member_list):
-    print('&&', member_list)
-    member_list_str = ', '.join(map(str, member_list))  # 리스트를 쉼표로 구분된 문자열로 변환
-
-    print('---', member_list_str)
-    # SQL 쿼리 생성
-    query = f"""
-    SELECT task
-    FROM member_based_okr_assignments
-    WHERE Member IN ({member_list_str})
-    """
-
-    # SQL 실행 및 결과를 리스트로 저장
-    try:
-        cursor = conn.cursor()
-        cursor.execute(query)
-        result = cursor.fetchall()  # 결과를 가져옴 (리스트 형태)
-        task_list = [row[0] for row in result]  # 결과를 1차원 리스트로 변환
-        # 역할 매핑
-        role_mapping = {
-            "pm": "Project Manager",
-            "data": "Data Engineer",
-            "frontend": "Frontend Engineer",
-            "backend": "Backend Engineer",
-            "design": "UI/UX Designer"
-        }
-
-        # task_list에서 매핑 수행
-        task_list = [
-            role_mapping[task] if task in role_mapping else task
-            for task in task_list
-        ]
-
-        print('---', task_list)
-
-    finally:
-        # 연결 종료
-        conn.close()
-
-    # 기술 스택 리스트 (수정해야 함)
-    stack_list = ['Agile, Scrum', 'Figma, Adobe', 'SQL, Python', 'React, Vue.js', 'Node.js']
-
-    print(len(member_list), len(task_list), len(stack_list))
-    # members 리스트 생성
-    if len(member_list) == len(task_list) == len(stack_list):
-        print(member_list, task_list, stack_list)
-        members = {
-            member: {"name": ('Member ' + str(int(member))), 
-                  "role": task, 
-                  "skills": skills}
-            for idx, (member, task, skills) in enumerate(zip(member_list, task_list, stack_list))
-        }
-
-        print(members)
-        return members.get(member_id, {"name": f"Member {member_id}", "role": "Unknown", "skills": "Unknown"})
+def get_member_info(member_id):
+    
+    # 실제로는 DB에서 가져와야 하는 정보
+    member_db = {
+        1: {"name": "강성지", "role": "PM(9년차)", "skills": "Agile, Scrum"},
+        2: {"name": "구동현", "role": "UI/UX(3년차)", "skills": "Figma, Adobe"},
+        3: {"name": "김승현", "role": "D_Eng(4년차)", "skills": "SQL, Python"},
+        4: {"name": "전현재", "role": "F_Dev(2년차)", "skills": "React, Vue.js"},
+        5: {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
+    }
+    return member_db.get(member_id, {"name": f"Member {member_id}", "role": "Unknown", "skills": "Unknown"})
 
 def get_member_name(member_id):
     return get_member_info(member_id)["name"]
@@ -190,18 +146,17 @@ if not st.session_state['dashboard']:
 
 # 대시보드 섹션
 if st.session_state['dashboard']:
-    # 샘플 데이터 (실제로는 API나 다른 소스에서 받아와야 함)
     member_list = member_list
-    print('&&&',member_list)
     score_list = score_list
     capability_list = skils 
     
     # 시너지 매트릭스 데이터
     synergy_df = pd.DataFrame(
-        individual_scores,
+        synergy_matrix,
         index=[get_member_name(id) for id in member_list[0]],
         columns=[get_member_name(id) for id in member_list[0]]
     )
+
     
     # 개인 역량 점수
     individual_scores = individual_scores
@@ -209,9 +164,11 @@ if st.session_state['dashboard']:
     # 기여도 데이터
     contribution_list = contribution
 
+    
+
     # 데이터 준비
     #final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
-    final_okr_list = ['A', 'B', 'C', 'D']
+    final_okr_list = ['A', 'B', 'C', 'D', 'E']
 
     # 대시보드 제목
     st.markdown('<div class="dashboard-title">Team Matching Dashboard</div>', unsafe_allow_html=True)
@@ -241,9 +198,8 @@ if st.session_state['dashboard']:
     # Team Composition 섹션
     st.markdown('<div class="container"><div class="section-title">Team Composition</div></div>', unsafe_allow_html=True)
     cols = st.columns(len(member_list[0]))
-    for col, first_team in zip(cols, member_list):
-        print('&&&&', first_team)
-        member_info = get_member_info(first_team)
+    for col, member_id in zip(cols, member_list[0]):
+        member_info = get_member_info(member_id)
         col.markdown(f"""
             <div class="member-box">
                 <div class="member-name">{member_info['name']}</div>
