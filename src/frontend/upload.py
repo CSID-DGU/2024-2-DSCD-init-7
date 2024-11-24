@@ -3,14 +3,27 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.express as px
-import plotly.graph_objects as go
 from io import BytesIO
 import base64
 import os
 import sys
+import mysql.connector
+import plotly.graph_objects as go
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from NLP.extract.extract_okr import extract_okr
+from buildteam.visualize import *
+
+# MySQL 서버에 연결
+conn = mysql.connector.connect(
+    host='10.80.11.114', # 학교 호스트 (DGU-WIFI)
+    #host='170.20.10.2', # 핫스팟 호스트 이름 (현재 핫스팟)
+    user='initmember',       # MySQL 사용자 이름
+    password='qweqsame1231',   # MySQL 사용자 비밀번호
+    database='employee'  # 연결할 데이터베이스 이름
+)
+
+# model 
 
 # Streamlit 페이지 설정
 st.set_page_config(page_title="Team Matching Dashboard", layout="wide", page_icon="📊")
@@ -92,15 +105,52 @@ st.markdown("""
 
 # DB 연동을 시뮬레이션하는 함수들
 def get_member_info(member_id):
-    # 실제로는 DB에서 가져와야 하는 정보
-    member_db = {
-        1: {"name": "강성지", "role": "PM(9년차)", "skills": "Agile, Scrum"},
-        2: {"name": "구동현", "role": "UI/UX(3년차)", "skills": "Figma, Adobe"},
-        3: {"name": "김승현", "role": "D_Eng(4년차)", "skills": "SQL, Python"},
-        4: {"name": "전현재", "role": "F_Dev(2년차)", "skills": "React, Vue.js"},
-        5: {"name": "유근태", "role": "B_Dev(2년차)", "skills": "Node.js"}
-    }
-    return member_db.get(member_id, {"name": f"Member {member_id}", "role": "Unknown", "skills": "Unknown"})
+    # SQL 쿼리 생성
+    query = f"""
+    SELECT task
+    FROM member_based_okr_assignments
+    WHERE Member IN ({member_id})
+    """
+
+    try:
+        id_list = [member_id]
+        cursor = conn.cursor()
+        cursor.execute(query)
+        result = cursor.fetchall()  # 결과를 가져옴 (리스트 형태)
+        task_list = [row[0] for row in result]  # 결과를 1차원 리스트로 변환
+        # 역할 매핑
+        role_mapping = {
+            "pm": "Project Manager",
+            "data": "Data Engineer",
+            "frontend": "Frontend Engineer",
+            "backend": "Backend Engineer",
+            "design": "UI/UX Designer"
+        }
+
+        # task_list에서 매핑 수행
+        task_list = [
+            role_mapping[task] if task in role_mapping else task
+            for task in task_list
+        ]
+
+    
+    finally:
+        # 연결 종료
+        cursor.close()
+
+    stack_list = ['Node.js']
+
+    # members 리스트 생성
+    if len(id_list) == len(task_list) == len(stack_list):
+        members = {
+            member: {"name": ('Member ' + str(int(member))), 
+                  "role": task, 
+                  "skills": skills}
+            for idx, (member, task, skills) in enumerate(zip(id_list, task_list, stack_list))
+        }
+
+        return members.get(member_id, {"name": f"Member {member_id}", "role": "Unknown", "skills": "Unknown"})
+
 
 def get_member_name(member_id):
     return get_member_info(member_id)["name"]
@@ -113,7 +163,7 @@ if 'show_candidates' not in st.session_state:
 # 파일 업로드 섹션
 if not st.session_state['dashboard']:
     st.title("프로젝트 팀 매칭 시스템")
-    file_title = st.text_input("프로젝트 제목", "프로젝트 제목을 입력하세요")
+    file_title = st.text_input("프로젝트 제목", value="", placeholder="프로젝트 제목을 입력하세요")
     uploaded_file = st.file_uploader("프로젝트 문서 업로드", type=['pdf', 'docx', 'hwp'])
 
     if st.button("분석 시작"):
@@ -129,41 +179,30 @@ if not st.session_state['dashboard']:
         else:
             st.warning("제목과 파일을 모두 입력해 주세요.")
 
+
 # 대시보드 섹션
 if st.session_state['dashboard']:
-    # 샘플 데이터 (실제로는 API나 다른 소스에서 받아와야 함)
-    member_list = [[1, 2, 3, 4, 5], [11, 12, 13, 14, 15], [21, 22, 23, 24, 25]]
-    score_list = [91, 88, 85]
-    capability_list = [4.2, 3.5, 4.1, 3.8, 4.5, 4.4]  # 6가지 역량 점수
+    member_list = member_list
+    score_list = score_list
+    capability_list = skils 
     
     # 시너지 매트릭스 데이터
     synergy_df = pd.DataFrame(
-        np.array([
-            [1.0, 0.8, 0.9, 0.7, 0.85],
-            [0.8, 1.0, 0.75, 0.8, 0.9],
-            [0.9, 0.75, 1.0, 0.85, 0.8],
-            [0.7, 0.8, 0.85, 1.0, 0.75],
-            [0.85, 0.9, 0.8, 0.75, 1.0]
-        ]),
+        synergy_matrix,
         index=[get_member_name(id) for id in member_list[0]],
         columns=[get_member_name(id) for id in member_list[0]]
     )
+
     
     # 개인 역량 점수
-    individual_scores = [
-        [1, 4.2, 3.8, 4.1, 3.9, 4.5, 4.3],
-        [2, 3.9, 4.1, 3.8, 4.2, 4.0, 4.1],
-        [3, 4.0, 3.9, 4.2, 3.8, 4.1, 4.0],
-        [4, 3.8, 4.0, 3.9, 4.1, 3.9, 4.2],
-        [5, 4.1, 3.8, 4.0, 3.9, 4.2, 3.8]
-    ]
+    individual_scores = individual_scores
     
     # 기여도 데이터
-    contribution_list = [(1, 25), (2, 20), (3, 20), (4, 18), (5, 17)]
+    contribution_list = contribution
 
     # 데이터 준비
     final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
-
+    
     # 대시보드 제목
     st.markdown('<div class="dashboard-title">Team Matching Dashboard</div>', unsafe_allow_html=True)
 
@@ -172,7 +211,7 @@ if st.session_state['dashboard']:
     <div class="container">
         <div class="section-title">Project Overview</div>
         <div style="font-size:32px;"><strong>Project:</strong> {st.session_state['file_title']}</div>
-        <p style="font-size:28px;"><strong>Description:</strong> {final_okr_list[0]}</p>
+        <p style="font-size:25px;"><strong>Description:</strong> {final_okr_list[0]}</p>
     </div>
     """, unsafe_allow_html=True)
     # Objective and Key Results 섹션
@@ -181,10 +220,10 @@ if st.session_state['dashboard']:
         <div class="section-title">Project Goals</div>
         <p style="font-size:30px;"><strong>Main Objective:</strong> {final_okr_list[1]}</p>
         <div style="font-size:28px;"><strong>Key Results:</strong></div>
-        <ul style="font-size:26px;">
-            <li>{final_okr_list[2]}</li>
-            <li>{final_okr_list[3]}</li>
-            <li>{final_okr_list[4]}</li>
+        <ul>
+            <li style="font-size:25px; margin-bottom: 10px;">{final_okr_list[2]}</li>
+            <li style="font-size:25px; margin-bottom: 10px;">{final_okr_list[3]}</li>
+            <li style="font-size:25px; margin-bottom: 10px;">{final_okr_list[4]}</li>
         </ul>
     </div>
     """, unsafe_allow_html=True)
@@ -246,11 +285,6 @@ if st.session_state['dashboard']:
                     {'range': [60, 80], 'color': "#ffcc99"},
                     {'range': [80, 100], 'color': "#99ff99"}
                 ],
-                'threshold': {
-                    'line': {'color': "red", 'width': 4},
-                    'thickness': 0.75,
-                    'value': 90
-                }
             }
         ))
         st.plotly_chart(fig, use_container_width=True)
@@ -346,8 +380,10 @@ if st.session_state['dashboard']:
 
     with col2:
         # Team Contribution Distribution
-        labels = [get_member_name(member_id) for member_id, _ in contribution_list]
-        values = [score for _, score in contribution_list]
+        labels = [get_member_name(member_id) for member_id in contribution_list.keys()]
+
+        values = list(contribution_list.values())
+
         
         # 선택된 멤버의 explode 값 설정
         selected_member_name = get_member_name(member_list[0][selected_member_idx])
@@ -375,7 +411,8 @@ if st.session_state['dashboard']:
                 y=0.95
             ),
             showlegend=False,
-            margin=dict(t=80, l=0, r=0, b=0)
+            margin=dict(t=80, l=0, r=0, b=80),  # bottom margin을 80으로 증가
+            height=500  # 전체 높이를 500으로 설정
         )
         
         st.plotly_chart(fig, use_container_width=True)
