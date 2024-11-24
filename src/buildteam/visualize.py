@@ -168,7 +168,7 @@ contribution=contribution_score(data_9, top_index)
 # 값 확인용
 # print("1. 예측성과점수: ", predictive_score)
 # print("2. 멤버 관련 정보: ", member_list, score_list)
-print("3. 성향분포: ", skils)
+# print("3. 성향분포: ", skils)
 # print("4. Team Synergy Analysis: ", synergy_matrix)
 # print("5. Member's Capability Analysis: ", individual_scores)
 # print("6. Project Contribution Score: ", contribution)
