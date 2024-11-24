@@ -11,7 +11,7 @@ import mysql.connector
 import plotly.graph_objects as go
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
-#from NLP.extract.extract_okr import extract_okr
+from NLP.extract.extract_okr import extract_okr
 from buildteam.visualize import *
 
 # MySQL 서버에 연결
@@ -140,10 +140,8 @@ def get_member_info(member_id):
 
     stack_list = ['Node.js']
 
-    print(len(id_list), len(task_list), len(stack_list))
     # members 리스트 생성
     if len(id_list) == len(task_list) == len(stack_list):
-        print(id_list, task_list, stack_list)
         members = {
             member: {"name": ('Member ' + str(int(member))), 
                   "role": task, 
@@ -202,12 +200,9 @@ if st.session_state['dashboard']:
     # 기여도 데이터
     contribution_list = contribution
 
-    
-
     # 데이터 준비
-    #final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
-    final_okr_list = ['A', 'B', 'C', 'D', 'E']
-
+    final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
+    
     # 대시보드 제목
     st.markdown('<div class="dashboard-title">Team Matching Dashboard</div>', unsafe_allow_html=True)
 
@@ -390,8 +385,10 @@ if st.session_state['dashboard']:
 
     with col2:
         # Team Contribution Distribution
-        labels = [get_member_name(member_id) for member_id, _ in contribution_list]
-        values = [score for _, score in contribution_list]
+        labels = [get_member_name(member_id) for member_id in contribution_list.keys()]
+
+        values = list(contribution_list.values())
+
         
         # 선택된 멤버의 explode 값 설정
         selected_member_name = get_member_name(member_list[0][selected_member_idx])
