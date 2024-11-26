@@ -6,7 +6,7 @@ import torch
 from src.backend.preprocess import preprocess_data
 from src.backend.similarity import calculate_weighted_scores
 from src.backend.model_inference import load_model, predict_with_model
-from src.backend.algorithm import TeamTransformer
+from src.buildteam.algorithm import TeamTransformer
 
 # MySQL 연결 정보
 conn_params = {
