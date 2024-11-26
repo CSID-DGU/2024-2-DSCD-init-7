@@ -1,6 +1,6 @@
 import torch
-from algorithm import TeamTransformer
-from dataloader import create_test_loader
+from src.buildteam.algorithm import TeamTransformer
+from src.buildteam.dataloader import create_test_loader
 
 
 
