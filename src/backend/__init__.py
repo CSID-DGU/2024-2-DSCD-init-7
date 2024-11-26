@@ -1,1 +1,1 @@
-
+from .algorithm import *
