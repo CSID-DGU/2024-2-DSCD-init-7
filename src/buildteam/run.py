@@ -48,7 +48,7 @@ optimizer = optim.Adam(model.parameters(), lr=0.001)
 # 손실 기록 리스트
 train_losses = []
 val_losses = []
-transformer_out_list = []
+
 best_val_loss = float('inf')  # 초기화
 
 # 학습 및 검증 루프
