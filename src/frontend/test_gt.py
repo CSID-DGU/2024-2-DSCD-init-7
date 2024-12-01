@@ -15,6 +15,9 @@ from NLP.extract.extract_okr import extract_okr
 from buildteam.visualize import *
 from buildteam.mem_change import member_change
 
+sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
+from main import main
+
 # MySQL 서버에 연결
 conn = mysql.connector.connect(
     #host='10.80.11.114', # 학교 호스트 (DGU-WIFI)
@@ -303,6 +306,8 @@ if st.session_state['current_page'] == 'upload':
 
 elif st.session_state['current_page'] == 'dashboard':
     if st.session_state['dashboard']:
+        main()
+       
         score_list = score_list
         capability_list = skils 
         
@@ -439,11 +444,6 @@ elif st.session_state['current_page'] == 'dashboard':
                         {'range': [60, 80], 'color': "#ffcc99"},
                         {'range': [80, 100], 'color': "#99ff99"}
                     ],
-                    'threshold': {
-                        'line': {'color': "red", 'width': 4},
-                        'thickness': 0.75,
-                        'value': 90
-                    }
                 }
             ))
             st.plotly_chart(fig, use_container_width=True)
@@ -494,7 +494,7 @@ elif st.session_state['current_page'] == 'dashboard':
             # Team Synergy Matrix
             fig = px.imshow(
                 synergy_df,
-                color_continuous_scale="RdYlBu",
+                color_continuous_scale="Blues",
                 title="Team Synergy Analysis",
                 labels=dict(color="Synergy Score")  # x, y 축 레이블 추가
             )
@@ -641,7 +641,9 @@ elif st.session_state['current_page'] == 'team_builder':
         </div>
         """, unsafe_allow_html=True)
         
+        print(current_team)
         new_team_score, new_capability_scores = member_change("../buildteam/real_result.npy", current_team)
+        print(new_team_score, new_capability_scores)
         col1, col2 = st.columns(2)
         
         with col1:
@@ -658,11 +660,6 @@ elif st.session_state['current_page'] == 'team_builder':
                         {'range': [60, 80], 'color': "#ffcc99"},
                         {'range': [80, 100], 'color': "#99ff99"}
                     ],
-                    'threshold': {
-                        'line': {'color': "red", 'width': 4},
-                        'thickness': 0.75,
-                        'value': 90
-                    }
                 }
             ))
             st.plotly_chart(fig, use_container_width=True)
