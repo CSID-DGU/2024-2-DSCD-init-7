@@ -26,30 +26,6 @@ conn = mysql.connector.connect(
 )
 
 
-# 테스트용 임시 데이터 추가
-member_details = {
-    1: {
-        #"experience": "8년",
-        "education": "컴퓨터공학 석사",
-        "certifications": ["PMP", "Agile Scrum Master"],
-        "previous_projects": ["AI 플랫폼 개발", "클라우드 마이그레이션"],
-        "strengths": ["리더십", "의사소통", "문제해결"],
-        #"languages": ["한국어", "영어"],
-        "contact": "member1@example.com"
-    },
-    2: {
-        #"experience": "5년",
-        "education": "컴퓨터공학 학사",
-        "certifications": ["React Developer", "AWS Developer"],
-        "previous_projects": ["전자상거래 플랫폼", "모바일 앱 개발"],
-        "strengths": ["UI/UX", "최신 기술 습득력"],
-        #"languages": ["한국어", "영어"],
-        "contact": "member2@example.com"
-    },
-    # ... 나머지 멤버들의 상세 정보도 비슷한 형식으로 추가
-}
-
-
 # Streamlit 페이지 설정
 st.set_page_config(page_title="Team Matching Dashboard", layout="wide", page_icon="📊")
 
@@ -192,17 +168,40 @@ st.markdown("""
 def get_member_info(member_id):
     # SQL 쿼리 생성
     query = f"""
-    SELECT task
-    FROM member_based_okr_assignments
-    WHERE Member IN ({member_id})
+    SELECT 
+        task, 
+        certifications, 
+        previous_projects, 
+        strengths, 
+        stack, 
+        contact
+    FROM employees
+    WHERE id IN ({member_id})
     """
 
     try:
         id_list = [member_id]
+        print(id_list)
         cursor = conn.cursor()
         cursor.execute(query)
         result = cursor.fetchall()  # 결과를 가져옴 (리스트 형태)
-        task_list = [row[0] for row in result]  # 결과를 1차원 리스트로 변환
+        
+        # 결과를 처리
+        task_list = []
+        certification_list = []
+        projects_list = []
+        strengths_list = []
+        stack_list = []
+        contact_list = []
+        
+        for row in result:
+            task_list.append(row[0])
+            certification_list.append(row[1])
+            projects_list.append(row[2])
+            strengths_list.append(row[3])
+            stack_list.append(row[4])
+            contact_list.append(row[5])
+
         # 역할 매핑
         role_mapping = {
             "pm": "Project Manager",
@@ -218,23 +217,28 @@ def get_member_info(member_id):
             for task in task_list
         ]
 
-    
     finally:
         # 연결 종료
         cursor.close()
 
-    stack_list = ['Node.js']
-
-    # members 리스트 생성
-    if len(id_list) == len(task_list) == len(stack_list):
+    # members 딕셔너리 생성
+    if len(id_list) == len(task_list) == len(stack_list) == len(certification_list) == len(projects_list) == len(strengths_list) == len(contact_list):
         members = {
-            member: {"name": ('Member ' + str(int(member))), 
-                  "role": task, 
-                  "skills": skills}
-            for idx, (member, task, skills) in enumerate(zip(id_list, task_list, stack_list))
+            member: {
+                "name": f"Member {member}", 
+                "role": task, 
+                "skills": stack, 
+                "certification": cert, 
+                "previous_projects": projects, 
+                "strengths": strengths, 
+                "contact": contact
+            }
+            for idx, (member, task, stack, cert, projects, strengths, contact) in enumerate(
+                zip(id_list, task_list, stack_list, certification_list, projects_list, strengths_list, contact_list)
+            )
         }
 
-        return members.get(member_id, {"name": f"Member {member_id}", "role": "Unknown", "skills": "Unknown"})
+        return members.get(member_id)
 
 
 def get_member_name(member_id):
@@ -297,6 +301,7 @@ if st.session_state['current_page'] == 'upload':
 elif st.session_state['current_page'] == 'dashboard':
     if st.session_state['dashboard']:
         member_list = member_list
+        print(member_list)
         score_list = score_list
         capability_list = skils 
         
@@ -351,33 +356,32 @@ elif st.session_state['current_page'] == 'dashboard':
 
         cols = st.columns(len(member_list[0]))
         for col, member_id in zip(cols, member_list[0]):
+            
             member_info = get_member_info(member_id)
             
             # 멤버 박스를 expander로 만들기
             with col.expander(f"{member_info['name']} 상세 정보"):
-                details = member_details.get(member_id, {})
                 
                 # 기본 정보
                 st.subheader("기본 정보")
                 st.write(f"**역할:** {member_info['role']}")
-                #st.write(f"**경력:** {details.get('experience', 'N/A')}")
-                st.write(f"**학력:** {details.get('education', 'N/A')}")
+                st.write(f"**학력:** {member_info['education']}")
                 st.write(f"**보유 기술:** {member_info['skills']}")
-                st.write(f"**연락처:** {details.get('contact', 'N/A')}")
+                st.write(f"**연락처:** {member_info['contact']}")
                 
                 # 자격증 및 강점
                 st.subheader("자격증 및 강점")
                 st.write("**자격증:**")
-                for cert in details.get('certifications', []):
+                for cert in {member_info['certifications']}:
                     st.write(f"- {cert}")
                 
                 st.write("**강점:**")
-                for strength in details.get('strengths', []):
+                for strength in {member_info['strengths']}:
                     st.write(f"- {strength}")
                 
                 # 프로젝트 이력
                 st.subheader("프로젝트 이력")
-                for project in details.get('previous_projects', []):
+                for project in {member_info['previous_projects']}:
                     st.write(f"- {project}")
             
             # 기존 멤버 정보 표시
@@ -576,11 +580,11 @@ elif st.session_state['current_page'] == 'team_builder':
     # 직군별 멤버 데이터 (예시)
     roles = ["Project Manager", "UI/UX Designer", "Data Engineer", "Frontend Engineer", "Backend Engineer"]
     all_members = {
-        "Project Manager": [f"Member {i}" for i in range(1, 11)],
-        "UI/UX Designer": [f"Member {i}" for i in range(11, 21)],
-        "Data Engineer": [f"Member {i}" for i in range(21, 31)],
-        "Frontend Engineer": [f"Member {i}" for i in range(31, 41)],
-        "Backend Engineer": [f"Member {i}" for i in range(41, 51)],
+        "Project Manager": [f"Member {i}" for i in range(0, 10)],
+        "UI/UX Designer": [f"Member {i}" for i in range(10, 20)],
+        "Data Engineer": [f"Member {i}" for i in range(20, 30)],
+        "Frontend Engineer": [f"Member {i}" for i in range(30, 40)],
+        "Backend Engineer": [f"Member {i}" for i in range(40, 50)],
     }
     
     # 현재 Best Team 표시
@@ -617,8 +621,8 @@ elif st.session_state['current_page'] == 'team_builder':
         </div>
         """, unsafe_allow_html=True)
         
-        new_team_score, new_capability_scores = member_change("real_result.npy",current_team)
-        
+        new_team_score, new_capability_scores = member_change("../buildteam/real_result.npy", current_team)
+        print(new_team_score,new_capability_scores)
         col1, col2 = st.columns(2)
         
         with col1:
