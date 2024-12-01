@@ -1,88 +1,103 @@
-import mysql.connector
 import pandas as pd
 import numpy as np
-import itertools
 import torch
-from src.backend.preprocess import preprocess_data
-from src.backend.similarity import calculate_weighted_scores
-from src.backend.model_inference import load_model, predict_with_model
+from src.backend.okr_module import connect_to_database, fetch_data_from_query, process_member_okr_data, calculate_weighted_scores, generate_combinations_3d
 from src.buildteam.algorithm import TeamTransformer
+from src.buildteam.dataloader import create_test_loader
 
-# MySQL 연결 정보
-conn_params = {
-    'host': '127.0.0.1',
-    'user': 'root',
-    'password': 'hj010701',
-    'database': 'employee'}
+def main():
+    # 데이터베이스 연결
+    conn = connect_to_database('127.0.0.1', 'root', 'hj010701', 'employee')
+    cursor = conn.cursor()
 
-# MySQL 데이터 가져오기
-conn = mysql.connector.connect(**conn_params)
-cursor = conn.cursor()
+    # 데이터 로드
+    member_assign_query = "SELECT * FROM member_assign_50to100"
+    okr_query = "SELECT * FROM okr_30to60"
+    join_query = '''
+    SELECT *
+    FROM member_assign_50to100
+    JOIN okr_30to60 
+    ON okr_30to60.OKR_NUM IN (member_assign_50to100.project1, member_assign_50to100.project2, member_assign_50to100.project3);
+    '''
 
-cursor.execute("SELECT * FROM member_assign_50to100")
-member_data = pd.DataFrame(cursor.fetchall(), columns=[i[0] for i in cursor.description])
+    member_assign_50to100 = fetch_data_from_query(cursor, member_assign_query)
+    okr_df = fetch_data_from_query(cursor, okr_query)
+    member_okr = fetch_data_from_query(cursor, join_query)
 
-cursor.execute("SELECT * FROM okr_30to60")
-okr_data = pd.DataFrame(cursor.fetchall(), columns=[i[0] for i in cursor.description])
+    # 데이터 처리
+    data = process_member_okr_data(member_okr)
 
-cursor.execute('''
-SELECT *
-FROM member_assign_50to100
-JOIN okr_30to60 
-ON okr_30to60.OKR_NUM IN (member_assign_50to100.project1, member_assign_50to100.project2, member_assign_50to100.project3);
-''')
-member_okr_data = pd.DataFrame(cursor.fetchall(), columns=[i[0] for i in cursor.description])
+    # 사용자 입력값
+    n_okr_input = "internal team communications Tool Improvement Projects have been aimed at improving the efficiency and accuracy of communication."
+    posted_input = 61.0
+    label_input = np.nan
 
-cursor.close()
-conn.close()
+    # 가중치 계산
+    weighted_sums = calculate_weighted_scores(member_okr, n_okr_input)[:50]
+    weighted_values = [value[1] for value in weighted_sums]
+    weighted_array = np.array(weighted_values)
 
-# 데이터 정렬 및 처리
-processed_data = preprocess_data(member_okr_data)
+    if data.shape[0] == len(weighted_values):
+        data.iloc[:, 0] = weighted_array
+        data["member"] = data.index.astype(int)
+        data["posted"] = posted_input
+        data["label"] = label_input
+    else:
+        print(f"샘플 수가 일치하지 않습니다. data 행 수: {data.shape[0]}, weighted_values 길이: {len(weighted_values)}")
+        return
 
-# 사용자 입력값
-n_okr_input = "internal team communications Tool Improvement Projects have been aimed at improving the efficiency and accuracy of communication."
-posted_input = 61.0
-label_input = np.nan
+    # 데이터 조합 생성
+    data_3d = generate_combinations_3d(data.iloc[:, :], num_parts=5)
+    final_data_f = np.concatenate((data_3d[:, :, 0:1], data_3d[:, :, 4:]), axis=2)
 
-# Weighted score 계산
-weighted_sums = calculate_weighted_scores(n_okr_input, member_okr_data)[:50]
-weighted_values = [value[1] for value in weighted_sums]
-weighted_array = np.array(weighted_values)
+    # 모델 파라미터 설정
+    embedding_dim = 19
+    seq_len = 5
+    output_dim = 1
+    n_heads = 1
+    n_layers = 3
+    hidden_dim = 64
+    dropout_rate = 0.2
 
-if processed_data.shape[0] == len(weighted_values):
-    processed_data.iloc[:, 0] = weighted_array
-    processed_data["member"] = processed_data.index.astype(int)
-    processed_data["posted"] = posted_input
-    processed_data["label"] = label_input
+    # 모델 초기화
+    model = TeamTransformer(
+        embedding_dim=embedding_dim,
+        n_heads=n_heads,
+        hidden_dim=hidden_dim,
+        n_layers=n_layers,
+        output_dim=output_dim,
+        dropout_rate=dropout_rate,
+    )
 
-def generate_combinations_3d(data, num_parts=5):
-    data_values = data.values
-    part_size = len(data_values) // num_parts
-    parts = [data_values[i * part_size:(i + 1) * part_size] for i in range(num_parts)]
-    combinations = list(itertools.product(*parts))
-    return np.array(combinations)
+    # 저장된 가중치 로드
+    state_dict = torch.load('best_model_weights.pth', map_location=torch.device('cpu'))
+    model.load_state_dict(state_dict)
 
-data_3d = generate_combinations_3d(processed_data, num_parts=5)
-final_data_f = np.concatenate((data_3d[:, :, 0:1], data_3d[:, :, 4:]), axis=2)
+    # 테스트 데이터를 위한 DataLoader 생성
+    test_loader = create_test_loader(final_data_f, batch_size=512)
+    transformer_out_list = []
+    predictions_list = []
 
-# 모델 파라미터
-params = {
-    'embedding_dim': 19,
-    'n_heads': 1,
-    'hidden_dim': 64,
-    'n_layers': 3,
-    'output_dim': 1,
-    'dropout_rate': 0.2
-}
+    # 평가 모드로 전환
+    model.eval()
+    for batch_inputs_total, _ in test_loader:
+        with torch.no_grad():
+            val_inputs_total, _ = next(iter(test_loader))
+            val_inputs = batch_inputs_total[:, :, :-2]
+            val_inputs_num = batch_inputs_total[:, :, -2:].int()
+            predictions, transformer_out = model(val_inputs)
+            transformer_out_list.append(transformer_out.detach().cpu().numpy())
+            predictions_list.append(predictions)
 
-# 모델 로드 및 추론
-model = load_model('models/best_model_weights.pth', params)
-predictions_list, transformer_out_list = predict_with_model(model, final_data_f)
+    # 결과 조합
+    transformer_out_last = torch.from_numpy(transformer_out_list[-1])
+    expand_predict = np.repeat(predictions_list[-1], repeats=5, axis=1).reshape(-1, 5, 1)
+    output = torch.cat((transformer_out_last, val_inputs_num), dim=-1)
+    result = torch.cat((output, expand_predict), dim=-1)
 
-transformer_out_last = transformer_out_list[-1]
-expand_predict = np.repeat(predictions_list[-1], repeats=5, axis=1).reshape(-1, 5, 1)
-output = torch.cat((transformer_out_last, final_data_f[:, :, -2:]), dim=-1)
-result = torch.cat((output, expand_predict), dim=-1)
+    # 최종 결과 출력
+    print(result)
 
-print(result)
-
+# 프로그램 진입점
+if __name__ == "__main__":
+    main()
