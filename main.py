@@ -5,15 +5,20 @@ from src.backend.okr_module import connect_to_database, fetch_data_from_query, p
 from src.buildteam.algorithm import TeamTransformer
 from src.buildteam.dataloader import create_test_loader
 
-def get_n_okr_input():
+def get_n_okr_input(n_okr_input=None):
     """
-    사용자로부터 n_okr_input 입력을 받는 함수.
+    n_okr_input 값을 변수로 입력받는 함수.
+
+    Args:
+        n_okr_input (str): 프로젝트 설명 문자열. 값이 없으면 기본값 사용.
+
+    Returns:
+        str: n_okr_input 값
     """
-    print("n_okr_input 값을 입력하세요 (프로젝트 설명):")
-    n_okr_input = input("> ")
     if not n_okr_input:
         n_okr_input = "Default project description"  # 기본값 설정
     return n_okr_input
+
 
 def main():
     # 데이터베이스 연결
@@ -104,6 +109,7 @@ def main():
     expand_predict = np.repeat(predictions_list[-1], repeats=5, axis=1).reshape(-1, 5, 1)
     output = torch.cat((transformer_out_last, val_inputs_num), dim=-1)
     forward_result = torch.cat((output, expand_predict), dim=-1)
+    
 
 # 프로그램 진입점
 if __name__ == "__main__":
