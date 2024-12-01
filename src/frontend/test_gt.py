@@ -13,6 +13,7 @@ import plotly.graph_objects as go
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from NLP.extract.extract_okr import extract_okr
 from buildteam.visualize import *
+from buildteam.mem_change import member_change
 
 # MySQL 서버에 연결
 conn = mysql.connector.connect(
@@ -573,13 +574,13 @@ elif st.session_state['current_page'] == 'team_builder':
     st.markdown('<div class="dashboard-title">Team Builder</div>', unsafe_allow_html=True)
     
     # 직군별 멤버 데이터 (예시)
-    roles = ["Project Manager", "Frontend Engineer", "Backend Engineer", "Data Engineer", "UI/UX Designer"]
+    roles = ["Project Manager", "UI/UX Designer", "Data Engineer", "Frontend Engineer", "Backend Engineer"]
     all_members = {
-        "Project Manager": [f"PM_{i}" for i in range(1, 11)],
-        "Frontend Engineer": [f"FE_{i}" for i in range(1, 11)],
-        "Backend Engineer": [f"BE_{i}" for i in range(1, 11)],
-        "Data Engineer": [f"DE_{i}" for i in range(1, 11)],
-        "UI/UX Designer": [f"UI_{i}" for i in range(1, 11)]
+        "Project Manager": [f"Member {i}" for i in range(1, 11)],
+        "UI/UX Designer": [f"Member {i}" for i in range(11, 21)],
+        "Data Engineer": [f"Member {i}" for i in range(21, 31)],
+        "Frontend Engineer": [f"Member {i}" for i in range(31, 41)],
+        "Backend Engineer": [f"Member {i}" for i in range(41, 51)],
     }
     
     # 현재 Best Team 표시
@@ -604,7 +605,9 @@ elif st.session_state['current_page'] == 'team_builder':
                 key=f"select_{role}",
                 index=all_members[role].index(default_member) if default_member in all_members[role] else 0
             )
+            selected_member = int(selected_member.replace('Member ', ''))
             current_team.append(selected_member)
+            #print('current team', current_team)
     
     # 팀 분석 결과 표시
     if st.button("팀 분석하기"):
@@ -614,9 +617,7 @@ elif st.session_state['current_page'] == 'team_builder':
         </div>
         """, unsafe_allow_html=True)
         
-        # 선택된 팀의 점수 계산 (예시)
-        new_team_score = 80  # 실제로는 선택된 팀원들의 조합에 따른 점수 계산 필요
-        new_capability_scores = [4.0, 3.5, 4.2, 3.8, 4.1, 3.9]  # 예시 데이터
+        new_team_score, new_capability_scores = member_change("real_result.npy",current_team)
         
         col1, col2 = st.columns(2)
         
