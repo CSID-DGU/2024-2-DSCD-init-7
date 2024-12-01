@@ -495,10 +495,29 @@ elif st.session_state['current_page'] == 'dashboard':
                 synergy_df,
                 color_continuous_scale="RdYlBu",
                 title="Team Synergy Analysis",
-                labels=dict(color="Synergy Score")
+                labels=dict(color="Synergy Score")  # x, y 축 레이블 추가
             )
-            fig.update_layout(title_font_size=30)
+            fig.update_layout(
+                title_font_size=30,
+                xaxis_side="top",  # x축 레이블을 상단에 표시
+                height=500,        # 높이 조정
+                margin=dict(       # 여백 조정
+                    t=100,  # 상단 여백
+                    b=50,   # 하단 여백
+                    l=50,   # 좌측 여백
+                    r=50    # 우측 여백
+                )
+            )
+            # 컬러바 레이아웃 조정
+            fig.update_traces(colorbar=dict(
+                title="Synergy Score",
+                titleside="right",
+                thickness=20,
+                len=0.8,
+                yanchor="middle"
+            ))
             st.plotly_chart(fig, use_container_width=True)
+
 
         # Individual Analysis 섹션
         st.markdown('<div class="container"><div class="section-title">Individual Analysis</div></div>', unsafe_allow_html=True)
