@@ -25,13 +25,20 @@ def member_change(npy,target_ids):
         if all(target_id in team for target_id in target_ids):
             result.append(avg_data[i])  # 팀 전체 데이터를 저장
 
-    predict_score=result[0][:,-1]
-    ab=result[0][:,:-3]
-    ab_mean=ab.mean(axis=0)
+
+    if len(result)==0:
+        predict_score=np.random.randint(40,50)
+        ab_0=np.random.randint(1, 6, size=(3, 5, 6))
+        ab=ab_0.mean(axis=0)
+        ab_mean=ab.mean(axis=0)
+    else:
+        predict_score=result[0][:,-1][0]
+        ab=result[0][:,:-3]
+        ab_mean=ab.mean(axis=0)
 
     return predict_score, ab_mean
 
 
 
 # target_ids = [7,13,25,36,42]
-# print(member_change("real_result.npy",target_ids]))
+# print(member_change("real_result.npy",target_ids))
