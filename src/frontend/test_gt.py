@@ -170,6 +170,7 @@ def get_member_info(member_id):
     query = f"""
     SELECT 
         task, 
+        education,
         certifications, 
         previous_projects, 
         strengths, 
@@ -180,8 +181,7 @@ def get_member_info(member_id):
     """
 
     try:
-        id_list = [member_id]
-        print(id_list)
+        id_list = [int(member_id)]
         cursor = conn.cursor()
         cursor.execute(query)
         result = cursor.fetchall()  # 결과를 가져옴 (리스트 형태)
@@ -189,6 +189,7 @@ def get_member_info(member_id):
         # 결과를 처리
         task_list = []
         certification_list = []
+        education_list = []
         projects_list = []
         strengths_list = []
         stack_list = []
@@ -196,11 +197,12 @@ def get_member_info(member_id):
         
         for row in result:
             task_list.append(row[0])
-            certification_list.append(row[1])
-            projects_list.append(row[2])
-            strengths_list.append(row[3])
-            stack_list.append(row[4])
-            contact_list.append(row[5])
+            education_list.append(row[1])
+            certification_list.append(row[2])
+            projects_list.append(row[3])
+            strengths_list.append(row[4])
+            stack_list.append(row[5])
+            contact_list.append(row[6])
 
         # 역할 매핑
         role_mapping = {
@@ -226,15 +228,16 @@ def get_member_info(member_id):
         members = {
             member: {
                 "name": f"Member {member}", 
+                "education": education,
                 "role": task, 
                 "skills": stack, 
-                "certification": cert, 
+                "certifications": cert, 
                 "previous_projects": projects, 
                 "strengths": strengths, 
                 "contact": contact
             }
-            for idx, (member, task, stack, cert, projects, strengths, contact) in enumerate(
-                zip(id_list, task_list, stack_list, certification_list, projects_list, strengths_list, contact_list)
+            for idx, (member, education, task, stack, cert, projects, strengths, contact) in enumerate(
+                zip(id_list, education_list, task_list, stack_list, certification_list, projects_list, strengths_list, contact_list)
             )
         }
 
@@ -300,8 +303,6 @@ if st.session_state['current_page'] == 'upload':
 
 elif st.session_state['current_page'] == 'dashboard':
     if st.session_state['dashboard']:
-        member_list = member_list
-        print(member_list)
         score_list = score_list
         capability_list = skils 
         
@@ -502,7 +503,7 @@ elif st.session_state['current_page'] == 'dashboard':
                 xaxis_side="top",  # x축 레이블을 상단에 표시
                 height=500,        # 높이 조정
                 margin=dict(       # 여백 조정
-                    t=100,  # 상단 여백
+                    t=100,  # 상단 여백 
                     b=50,   # 하단 여백
                     l=50,   # 좌측 여백
                     r=50    # 우측 여백
@@ -630,7 +631,7 @@ elif st.session_state['current_page'] == 'team_builder':
             )
             selected_member = int(selected_member.replace('Member ', ''))
             current_team.append(selected_member)
-            #print('current team', current_team)
+   
     
     # 팀 분석 결과 표시
     if st.button("팀 분석하기"):
@@ -641,7 +642,6 @@ elif st.session_state['current_page'] == 'team_builder':
         """, unsafe_allow_html=True)
         
         new_team_score, new_capability_scores = member_change("../buildteam/real_result.npy", current_team)
-        print(new_team_score,new_capability_scores)
         col1, col2 = st.columns(2)
         
         with col1:
