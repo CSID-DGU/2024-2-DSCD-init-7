@@ -1,28 +1,12 @@
 import pandas as pd
 import numpy as np
 import torch
-from src.backend.okr_module import connect_to_database, fetch_data_from_query, process_member_okr_data, calculate_weighted_scores, generate_combinations_3d
+from src.backend.okr_module import fetch_data_from_query, process_member_okr_data, calculate_weighted_scores, generate_combinations_3d
 from src.buildteam.algorithm import TeamTransformer
 from src.buildteam.dataloader import create_test_loader
 
-def get_n_okr_input(n_okr_input=None):
-    """
-    n_okr_input 값을 변수로 입력받는 함수.
-
-    Args:
-        n_okr_input (str): 프로젝트 설명 문자열. 값이 없으면 기본값 사용.
-
-    Returns:
-        str: n_okr_input 값
-    """
-    if not n_okr_input:
-        n_okr_input = "Default project description"  # 기본값 설정
-    return n_okr_input
-
-
-def main():
-    # 데이터베이스 연결
-    conn = connect_to_database('127.0.0.1', 'root', 'hj010701', 'employee')
+def model(conn, n_okr_input):
+    # 데이터베이스 커서 생성
     cursor = conn.cursor()
 
     # 데이터 로드
@@ -42,8 +26,7 @@ def main():
     # 데이터 처리
     data = process_member_okr_data(member_okr)
 
-    # 사용자 입력값 처리
-    n_okr_input = get_n_okr_input()
+    # 사용자 입력값
     posted_input = 61.0
     label_input = np.nan
 
@@ -58,8 +41,7 @@ def main():
         data["posted"] = posted_input
         data["label"] = label_input
     else:
-        print(f"샘플 수가 일치하지 않습니다. data 행 수: {data.shape[0]}, weighted_values 길이: {len(weighted_values)}")
-        return
+        raise ValueError(f"샘플 수가 일치하지 않습니다. data 행 수: {data.shape[0]}, weighted_values 길이: {len(weighted_values)}")
 
     # 데이터 조합 생성
     data_3d = generate_combinations_3d(data.iloc[:, :], num_parts=5)
@@ -109,9 +91,5 @@ def main():
     expand_predict = np.repeat(predictions_list[-1], repeats=5, axis=1).reshape(-1, 5, 1)
     output = torch.cat((transformer_out_last, val_inputs_num), dim=-1)
     forward_result = torch.cat((output, expand_predict), dim=-1)
-    
 
-# 프로그램 진입점
-if __name__ == "__main__":
-    main()
-
+    return forward_result
