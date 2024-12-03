@@ -16,13 +16,13 @@ from buildteam.visualize import *
 from buildteam.mem_change import member_change
 
 sys.path.append(os.path.join(os.path.dirname(__file__), '../..'))
-from main import main
+from main import model
 
 # MySQL 서버에 연결
 conn = mysql.connector.connect(
-    #host='10.80.11.114', # 학교 호스트 (DGU-WIFI)
+    host='10.80.11.114', # 학교 호스트 (DGU-WIFI)
     #host='170.20.10.2', # 핫스팟 호스트 이름 (현재 핫스팟)
-    host = '192.168.208.42', # 승현 핫스팟
+    #host = '192.168.208.42', # 승현 핫스팟
     user='initmember',       # MySQL 사용자 이름
     password='qweqsame1231',   # MySQL 사용자 비밀번호
     database='employee'  # 연결할 데이터베이스 이름
@@ -121,7 +121,7 @@ st.markdown("""
     }
     .member-box {
         cursor: pointer;
-        transition: transform 0.2s;
+        transform: scale(1.02);
     }
     .member-box:hover {
         transform: scale(1.02);
@@ -306,7 +306,6 @@ if st.session_state['current_page'] == 'upload':
 
 elif st.session_state['current_page'] == 'dashboard':
     if st.session_state['dashboard']:
-        main()
        
         score_list = score_list
         capability_list = skils 
@@ -327,6 +326,8 @@ elif st.session_state['current_page'] == 'dashboard':
         # 데이터 준비
         final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
         
+        forward_result = model(conn, final_okr_list[1])
+
         # 대시보드 제목
         st.markdown('<div class="dashboard-title">Team Matching Dashboard</div>', unsafe_allow_html=True)
 
@@ -641,9 +642,8 @@ elif st.session_state['current_page'] == 'team_builder':
         </div>
         """, unsafe_allow_html=True)
         
-        print(current_team)
         new_team_score, new_capability_scores = member_change("../buildteam/real_result.npy", current_team)
-        print(new_team_score, new_capability_scores)
+
         col1, col2 = st.columns(2)
         
         with col1:
