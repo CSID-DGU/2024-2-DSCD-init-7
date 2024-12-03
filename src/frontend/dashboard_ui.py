@@ -298,6 +298,17 @@ if st.session_state['current_page'] == 'upload':
             
             st.session_state['uploaded_file_path'] = save_path
             st.session_state['file_title'] = file_title
+
+             # Show loading spinner while processing
+            with st.spinner("Analyzing the document and generating results..."):
+                # Run extract_okr
+                final_okr_list = extract_okr(save_path)[0]
+                st.session_state['final_okr_list'] = final_okr_list
+
+                # Run model
+                model_result = model(conn, final_okr_list[1])
+                st.session_state['model_result'] = model_result
+
             st.session_state['current_page'] = 'dashboard'
             st.session_state['dashboard'] = True
             st.success(f"File '{uploaded_file.name}' has been uploaded.")
@@ -324,9 +335,9 @@ elif st.session_state['current_page'] == 'dashboard':
         contribution_list = contribution
 
         # 데이터 준비
-        final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
+        #final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
         
-        st.session_state['model_result'] = model(conn, final_okr_list[1])
+        #st.session_state['model_result'] = model(conn, final_okr_list[1])
 
         # 대시보드 제목
         st.markdown('<div class="dashboard-title">Team Matching Dashboard</div>', unsafe_allow_html=True)
@@ -336,7 +347,7 @@ elif st.session_state['current_page'] == 'dashboard':
         <div class="container">
             <div class="section-title">Project Overview</div>
             <div style="font-size:32px;"><strong>Project:</strong> {st.session_state['file_title']}</div>
-            <p style="font-size:25px;"><strong>Description:</strong> {final_okr_list[0]}</p>
+            <p style="font-size:25px;"><strong>Description:</strong> {st.session_state['final_okr_list'][0]}</p>
         </div>
         """, unsafe_allow_html=True)
 
@@ -344,12 +355,12 @@ elif st.session_state['current_page'] == 'dashboard':
         st.markdown(f"""
         <div class="container">
             <div class="section-title">Project Goals</div>
-            <p style="font-size:30px;"><strong>Main Objective:</strong> {final_okr_list[1]}</p>
+            <p style="font-size:30px;"><strong>Main Objective:</strong> {st.session_state['final_okr_list'][1]}</p>
             <div style="font-size:28px;"><strong>Key Results:</strong></div>
             <ul>
-                <li style="font-size:25px; margin-bottom: 10px;">{final_okr_list[2]}</li>
-                <li style="font-size:25px; margin-bottom: 10px;">{final_okr_list[3]}</li>
-                <li style="font-size:25px; margin-bottom: 10px;">{final_okr_list[4]}</li>
+                <li style="font-size:25px; margin-bottom: 10px;">{st.session_state['final_okr_list'][2]}</li>
+                <li style="font-size:25px; margin-bottom: 10px;">{st.session_state['final_okr_list'][3]}</li>
+                <li style="font-size:25px; margin-bottom: 10px;">{st.session_state['final_okr_list'][4]}</li>
             </ul>
         </div>
         """, unsafe_allow_html=True)
