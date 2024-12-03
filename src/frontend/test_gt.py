@@ -356,7 +356,7 @@ elif st.session_state['current_page'] == 'dashboard':
         # Team Composition 섹션
         st.markdown(f'''
             <div class="container">
-                <div class="section-title">Best Team Composition (Team Score: {score_list[0]})</div>
+                <div class="section-title">Best Team Composition (Team Score: {score_list[0]:.2f})</div>
             </div>
         ''', unsafe_allow_html=True)
 
@@ -413,7 +413,7 @@ elif st.session_state['current_page'] == 'dashboard':
 
             # 각 후보 팀 표시
             for team_idx, team_members in enumerate(member_list[1:], 2):
-                st.markdown(f"### Team {team_idx} (Team Score: {score_list[team_idx-1]})")
+                st.markdown(f"### Team {team_idx} (Team Score: {score_list[team_idx-1]:.2f})")
                 cols = st.columns(len(team_members))
                 for col, member_id in zip(cols, team_members):
                     member_info = get_member_info(member_id)
