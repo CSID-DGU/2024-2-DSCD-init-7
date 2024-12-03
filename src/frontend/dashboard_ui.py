@@ -326,7 +326,7 @@ elif st.session_state['current_page'] == 'dashboard':
         # 데이터 준비
         final_okr_list = extract_okr(st.session_state['uploaded_file_path'])[0]
         
-        forward_result = model(conn, final_okr_list[1])
+        st.session_state['model_result'] = model(conn, final_okr_list[1])
 
         # 대시보드 제목
         st.markdown('<div class="dashboard-title">Team Matching Dashboard</div>', unsafe_allow_html=True)
@@ -635,7 +635,7 @@ elif st.session_state['current_page'] == 'team_builder':
         </div>
         """, unsafe_allow_html=True)
         
-        new_team_score, new_capability_scores = member_change("../buildteam/real_result.npy", current_team)
+        new_team_score, new_capability_scores = member_change(st.session_state['model_result'], current_team)
 
         col1, col2 = st.columns(2)
         

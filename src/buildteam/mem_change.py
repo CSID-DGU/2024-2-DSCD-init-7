@@ -5,8 +5,8 @@ import torch.nn as nn
 import torch.optim as optim
 import numpy as np
 
-def member_change(npy,target_ids):
-    data=np.load(npy)
+def member_change(forward_result,target_ids):
+    data= forward_result
     
     # Define index groups for averaging
     average_indices = [[1, 7, 13], [2, 8, 14], [3, 9, 15], [4, 10, 16], [5, 11, 17], [6, 12, 18]]
