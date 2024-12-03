@@ -257,40 +257,40 @@ if 'current_page' not in st.session_state:
 
 # 사이드바 생성
 with st.sidebar:
-    st.title("메뉴")
+    st.title("Menu")
     
     # 파일 업로드 페이지 버튼
-    if st.button("파일 업로드", 
+    if st.button("Upload File", 
                 key="upload_btn",
-                help="프로젝트 문서 업로드 페이지로 이동",
+                help="Navigate to file upload page",
                 use_container_width=True):
         st.session_state['current_page'] = 'upload'
         st.session_state['dashboard'] = False
     
     # 대시보드 페이지 버튼
-    if st.button("대시보드", 
+    if st.button("Dashboard", 
                 key="dashboard_btn",
-                help="팀 매칭 대시보드 페이지로 이동",
+                help="Navigate to team matching dashboard",
                 use_container_width=True):
         if 'uploaded_file_path' in st.session_state:
             st.session_state['current_page'] = 'dashboard'
             st.session_state['dashboard'] = True
         else:
-            st.warning("먼저 파일을 업로드해주세요.")
+            st.warning("Please upload a file first.")
     # Team Builder 버튼 추가
-    if st.button("팀 빌더", key="team_builder_btn", use_container_width=True):
+    if st.button("Team Builder", key="team_builder_btn", use_container_width=True):
         if 'uploaded_file_path' in st.session_state:
             st.session_state['current_page'] = 'team_builder'
         else:
-            st.warning("먼저 파일을 업로드해주세요.")
+            st.warning("Please upload a file first.")
 
 # 메인 컨텐츠
 if st.session_state['current_page'] == 'upload':
-    st.title("프로젝트 팀 매칭 시스템")
-    file_title = st.text_input("프로젝트 제목", value="", placeholder="프로젝트 제목을 입력하세요")
-    uploaded_file = st.file_uploader("프로젝트 문서 업로드", type=['pdf', 'docx', 'hwp'])
+    st.title("Project Team Matching System")
+    file_title = st.text_input("Project Tilte", value="", placeholder="Enter project title")
+    uploaded_file = st.file_uploader("Upload Project Document", type=['pdf', 'docx', 'hwp'])
 
-    if st.button("분석 시작"):
+    if st.button("Start Analysis"):
         if uploaded_file is not None and file_title:
             save_path = os.path.join("uploaded_files", uploaded_file.name)
             with open(save_path, "wb") as f:
@@ -300,9 +300,9 @@ if st.session_state['current_page'] == 'upload':
             st.session_state['file_title'] = file_title
             st.session_state['current_page'] = 'dashboard'
             st.session_state['dashboard'] = True
-            st.success(f"{uploaded_file.name} 파일이 업로드되었습니다.")
+            st.success(f"File '{uploaded_file.name}' has been uploaded.")
         else:
-            st.warning("제목과 파일을 모두 입력해 주세요.")
+            st.warning("Please enter the title and upload a file.")
 
 elif st.session_state['current_page'] == 'dashboard':
     if st.session_state['dashboard']:
@@ -367,27 +367,27 @@ elif st.session_state['current_page'] == 'dashboard':
             member_info = get_member_info(member_id)
             
             # 멤버 박스를 expander로 만들기
-            with col.expander(f"{member_info['name']} 상세 정보"):
+            with col.expander(f"{member_info['name']} Details"):
                 
                 # 기본 정보
-                st.subheader("기본 정보")
-                st.write(f"**역할:** {member_info['role']}")
-                st.write(f"**학력:** {member_info['education']}")
-                st.write(f"**보유 기술:** {member_info['skills']}")
-                st.write(f"**연락처:** {member_info['contact']}")
+                st.subheader("Basic Information")
+                st.write(f"**Role:** {member_info['role']}")
+                st.write(f"**Education:** {member_info['education']}")
+                st.write(f"**Skills:** {member_info['skills']}")
+                st.write(f"**Contact:** {member_info['contact']}")
                 
                 # 자격증 및 강점
-                st.subheader("자격증 및 강점")
-                st.write("**자격증:**")
+                st.subheader("Certifications and Strengths")
+                st.write("**Certifications:**")
                 for cert in {member_info['certifications']}:
                     st.write(f"- {cert}")
                 
-                st.write("**강점:**")
+                st.write("**Strengths:**")
                 for strength in {member_info['strengths']}:
                     st.write(f"- {strength}")
                 
                 # 프로젝트 이력
-                st.subheader("프로젝트 이력")
+                st.subheader("Project History")
                 for project in {member_info['previous_projects']}:
                     st.write(f"- {project}")
             
@@ -526,7 +526,7 @@ elif st.session_state['current_page'] == 'dashboard':
         
         # 멤버 선택 박스
         selected_member_idx = st.selectbox(
-            "팀원 선택",
+            "Select Team Member",
             range(len(member_list[0])),
             format_func=lambda x: get_member_name(member_list[0][x])
         )
@@ -608,13 +608,6 @@ elif st.session_state['current_page'] == 'team_builder':
         "Backend Engineer": [f"Member {i}" for i in range(40, 50)],
     }
     
-    # 현재 Best Team 표시
-    st.markdown("""
-    <div class="container">
-        <div class="section-title">Current Best Team</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
     # 각 역할별로 선택 가능한 멤버 표시
     cols = st.columns(len(roles))
     current_team = []
@@ -635,7 +628,7 @@ elif st.session_state['current_page'] == 'team_builder':
    
     
     # 팀 분석 결과 표시
-    if st.button("팀 분석하기"):
+    if st.button("Team Analysis"):
         st.markdown("""
         <div class="container">
             <div class="section-title">Team Analysis Result</div>
@@ -700,11 +693,12 @@ elif st.session_state['current_page'] == 'team_builder':
                     y='Score',
                     title="Team Score Comparison",
                     color='Team',
+                    
                     color_discrete_sequence=["#3498db", "#e74c3c"])
         
         fig.update_layout(
             title_font_size=30,
-            yaxis_range=[0, 100],
+            yaxis_range=[50, 80],
             showlegend=False
         )
         st.plotly_chart(fig, use_container_width=True)
