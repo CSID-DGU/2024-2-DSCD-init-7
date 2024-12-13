@@ -42,7 +42,9 @@ def member_change(forward_result,target_ids):
         ab=result[0][:,:-3]
         ab_mean=ab.mean(axis=0)
         ab_mean_nor=natural_normalize(ab_mean)
+        
     else:
+        
         predict_score=np.random.randint(55,60)+np.around(np.random.random(),2)
         ab_0=np.random.randint(1, 6, size=(3, 5, 6))
         ab=ab_0.mean(axis=0)

@@ -133,7 +133,7 @@ def contribution_score(data, top_index):
 
 
 #데이터 로드
-data=np.load("../buildteam/real_result.npy")
+data=np.load("../buildteam/reals.npy")
 if isinstance(data, np.ndarray):
     data_torch = torch.from_numpy(data)
 

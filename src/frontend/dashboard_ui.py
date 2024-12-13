@@ -20,11 +20,9 @@ from main import model
 
 # MySQL 서버에 연결
 conn = mysql.connector.connect(
-    host='10.80.11.114', # 학교 호스트 (DGU-WIFI)
-    #host='170.20.10.2', # 핫스팟 호스트 이름 (현재 핫스팟)
-    #host = '192.168.208.42', # 승현 핫스팟
-    user='initmember',       # MySQL 사용자 이름
-    password='qweqsame1231',   # MySQL 사용자 비밀번호
+    host='127.0.0.1',  # 호스트 이름
+    user='root',       # MySQL 사용자 이름
+    password='hj010701',   # MySQL 사용자 비밀번호
     database='employee'  # 연결할 데이터베이스 이름
 )
 
